@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "catalog": [
+    {
+      "brand": "Ультракаин",
+      "family": "Ультракаин Д-С форте",
+      "variant": "1:100 000",
+      "active_ingredient": "артикаин с эпинефрином",
+      "forms": [
+        {
+          "form": "карпулы",
+          "volume_ml": 1.7,
+          "package_quantity": 100,
+          "package_unit": "цилиндрических ампул"
+        },
+        {
+          "form": "разбиваемые ампулы",
+          "volume_ml": 2,
+          "package_quantity": 10,
+          "package_unit": "ампул"
+        }
+      ]
+    },
+    {
+      "brand": "Ультракаин",
+      "family": "Ультракаин Д-С",
+      "variant": "1:200 000",
+      "active_ingredient": "артикаин с эпинефрином",
+      "forms": [
+        {
+          "form": "карпулы",
+          "volume_ml": 1.7,
+          "package_quantity": 100,
+          "package_unit": "цилиндрических ампул"
+        },
+        {
+          "form": "разбиваемые ампулы",
+          "volume_ml": 2,
+          "package_quantity": 10,
+          "package_unit": "ампул"
+        }
+      ]
+    },
+    {
+      "brand": "Ультракаин",
+      "family": "Ультракаин Д",
+      "variant": "без адреналина",
+      "active_ingredient": "артикаин",
+      "forms": [
+        {
+          "form": "карпулы",
+          "volume_ml": 1.7,
+          "package_quantity": 10,
+          "package_unit": "цилиндрических ампул"
+        }
+      ]
+    }
+  ]
+}
