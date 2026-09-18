@@ -4,22 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Закупки AI</title>
+
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#f5f6f8;
   color:#111;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
+
 .app{
   max-width:600px;
   margin:auto;
   padding:20px;
 }
-h1{font-size:28px;margin:10px 0 6px}
-h2{font-size:22px;margin:10px 0 16px}
-p{color:#666;line-height:1.45}
+
+h1{
+  font-size:28px;
+  margin:8px 0;
+}
+
+h2{
+  font-size:21px;
+  margin:8px 0 14px;
+}
+
+p{
+  color:#666;
+  line-height:1.45;
+}
+
 .card{
   background:white;
   border-radius:18px;
@@ -27,6 +43,22 @@ p{color:#666;line-height:1.45}
   margin:14px 0;
   box-shadow:0 2px 10px rgba(0,0,0,.06);
 }
+
+textarea,
+input{
+  width:100%;
+  border:1px solid #ddd;
+  border-radius:14px;
+  padding:14px;
+  font-size:16px;
+  font-family:inherit;
+  outline:none;
+}
+
+textarea{
+  resize:none;
+}
+
 button{
   width:100%;
   border:0;
@@ -38,269 +70,531 @@ button{
   background:#111;
   color:white;
 }
+
 button.secondary{
   background:#e9eaed;
   color:#111;
 }
-button.green{background:#16833b}
-button.red{background:#c93434}
-textarea,input{
-  width:100%;
-  border:1px solid #ddd;
+
+button.green{
+  background:#16833b;
+}
+
+.hidden{
+  display:none;
+}
+
+.chat{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.message{
+  max-width:88%;
+  padding:12px 14px;
+  border-radius:16px;
+  line-height:1.4;
+}
+
+.ai{
+  background:#eef1f5;
+  align-self:flex-start;
+}
+
+.user{
+  background:#111;
+  color:white;
+  align-self:flex-end;
+}
+
+.summary{
+  background:#f7f7f7;
   border-radius:14px;
   padding:14px;
-  font-size:16px;
-  font-family:inherit;
-  resize:none;
+  margin-top:12px;
 }
-.hidden{display:none}
-.price{
-  font-size:23px;
-  font-weight:700;
-}
+
 .small{
   font-size:14px;
   color:#777;
 }
+
 .badge{
   display:inline-block;
+  background:#eef1f5;
   padding:6px 10px;
   border-radius:10px;
-  background:#eef1f5;
   font-size:13px;
 }
 </style>
 </head>
 
 <body>
+
 <div class="app">
 
+<!-- ГЛАВНЫЙ ЭКРАН -->
+
 <div id="home">
+
   <h1>Закупки AI</h1>
-  <p>Простая система закупок для клиник и поставщиков.</p>
+
+  <p>
+    Опишите своими словами, что нужно купить.
+    AI уточнит недостающие данные и подготовит заявку.
+  </p>
 
   <div class="card">
-    <h2>Кто вы?</h2>
-    <button onclick="showClinic()">🏥 Я клиника</button>
-    <button class="secondary" onclick="showSupplier()">📦 Я поставщик</button>
+
+    <button onclick="openClinic()">
+      🏥 Начать закупку
+    </button>
+
+    <button class="secondary" onclick="openSupplier()">
+      📦 Я поставщик
+    </button>
+
   </div>
+
 </div>
 
+
+<!-- КЛИНИКА -->
 
 <div id="clinic" class="hidden">
-  <h1>🏥 Клиника</h1>
 
-  <div id="clinicStart">
-    <div class="card">
-      <h2>Что вам нужно купить?</h2>
-      <textarea id="request" rows="5"
-      placeholder="Например: 20 упаковок перчаток размер M, чёрные"></textarea>
-      <button onclick="confirmRequest()">Продолжить</button>
-    </div>
-  </div>
+  <h1>Новая закупка</h1>
 
-  <div id="clinicConfirm" class="hidden">
-    <div class="card">
-      <h2>Проверьте заявку</h2>
-      <p id="requestText"></p>
-      <button onclick="sendRequest()">✅ Всё верно, отправить поставщикам</button>
-      <button class="secondary" onclick="backToRequest()">Изменить</button>
-    </div>
-  </div>
+  <div class="card">
 
-  <div id="clinicWaiting" class="hidden">
-    <div class="card">
-      <h2>Заявка отправлена</h2>
-      <p>Мы направили запрос подходящим поставщикам.</p>
-      <span class="badge">Ожидаем предложения</span>
-      <button onclick="showOffers()">Показать предложения</button>
-    </div>
-  </div>
+    <div id="chat" class="chat"></div>
 
-  <div id="clinicOffers" class="hidden">
-    <h2>Предложения</h2>
+    <div id="inputArea">
 
-    <div class="card">
-      <p><b>Поставщик «ДентСнаб»</b></p>
-      <p>Перчатки нитриловые M, чёрные<br>20 упаковок</p>
-      <div class="price">18 000 ₽</div>
-      <p class="small">Доставка: 500 ₽ · Завтра</p>
-      <button class="green" onclick="selectOffer('ДентСнаб','18 500 ₽')">
-        Выбрать предложение
+      <textarea
+        id="userInput"
+        rows="3"
+        placeholder="Например: нужны чёрные нитриловые перчатки M">
+      </textarea>
+
+      <button onclick="sendMessage()">
+        Отправить
       </button>
+
     </div>
 
-    <div class="card">
-      <p><b>Поставщик «МедТорг»</b></p>
-      <p>Перчатки нитриловые M, чёрные<br>20 упаковок</p>
-      <div class="price">18 700 ₽</div>
-      <p class="small">Доставка: бесплатно · 2 дня</p>
-      <button class="green" onclick="selectOffer('МедТорг','18 700 ₽')">
-        Выбрать предложение
-      </button>
-    </div>
   </div>
 
-  <div id="clinicOrder" class="hidden">
-    <div class="card">
-      <h2>Подтверждение заказа</h2>
-      <p id="selectedOffer"></p>
-      <button class="green" onclick="finishOrder()">✅ Подтвердить заказ</button>
-      <button class="secondary" onclick="showOffers()">Назад</button>
-    </div>
-  </div>
+  <button class="secondary" onclick="goHome()">
+    ← Назад
+  </button>
 
-  <div id="clinicDone" class="hidden">
-    <div class="card">
-      <h2>✅ Заказ создан</h2>
-      <p>Заказ передан поставщику.</p>
-      <span class="badge">Ожидаем подтверждение</span>
-    </div>
-  </div>
-
-  <button class="secondary" onclick="goHome()">← Главное меню</button>
 </div>
 
 
+<!-- ПОСТАВЩИК -->
+
 <div id="supplier" class="hidden">
+
   <h1>📦 Поставщик</h1>
 
   <div class="card">
+
     <span class="badge">Новая заявка</span>
+
     <h2>Запрос от клиники</h2>
-    <p id="supplierRequest">
-      20 упаковок нитриловых перчаток размер M, чёрные
+
+    <p>
+      Нужны 20 упаковок чёрных нитриловых перчаток,
+      размер M.
     </p>
 
-    <button onclick="supplierPrice()">💰 Дать цену</button>
-    <button class="secondary" onclick="supplierQuestion()">❓ Уточнить возможность</button>
-    <button class="red" onclick="supplierReject()">❌ Не могу поставить</button>
+    <button onclick="showSupplierOffer()">
+      💰 Дать цену
+    </button>
+
+    <button class="secondary">
+      ❓ Уточнить возможность
+    </button>
+
+    <button class="secondary">
+      ❌ Не могу поставить
+    </button>
+
   </div>
 
   <div id="supplierOffer" class="card hidden">
+
     <h2>Ваше предложение</h2>
 
-    <label>Цена товара</label>
-    <input id="supplierPriceInput" type="number" placeholder="Например 18000">
+    <input
+      id="supplierPrice"
+      type="number"
+      placeholder="Цена товара, ₽">
 
-    <label style="display:block;margin-top:12px">Стоимость доставки</label>
-    <input id="supplierDeliveryInput" type="number" placeholder="Например 500">
+    <input
+      id="supplierDelivery"
+      type="number"
+      placeholder="Доставка, ₽"
+      style="margin-top:10px">
 
-    <label style="display:block;margin-top:12px">Срок доставки</label>
-    <input id="supplierTimeInput" placeholder="Например завтра">
+    <input
+      id="supplierTime"
+      placeholder="Срок доставки"
+      style="margin-top:10px">
 
-    <button class="green" onclick="sendSupplierOffer()">Отправить предложение</button>
+    <button class="green" onclick="sendSupplierOffer()">
+      Отправить предложение
+    </button>
+
   </div>
 
-  <div id="supplierMessage" class="card hidden"></div>
+  <button class="secondary" onclick="goHome()">
+    ← Назад
+  </button>
 
-  <button class="secondary" onclick="goHome()">← Главное меню</button>
 </div>
 
+
+<!-- РЕЗУЛЬТАТ -->
+
+<div id="result" class="hidden">
+
+  <h1>Заявка готова</h1>
+
+  <div class="card">
+
+    <span class="badge">Проверено AI</span>
+
+    <div id="resultText" class="summary"></div>
+
+    <button class="green">
+      📤 Отправить поставщикам
+    </button>
+
+  </div>
+
+  <button class="secondary" onclick="goHome()">
+    ← Главное меню
+  </button>
+
 </div>
+
+
+</div>
+
 
 <script>
+
+let stage = "start";
+
+let request = {
+  product:"",
+  quantity:"",
+  unit:"",
+  details:""
+};
+
+
 function hideAll(){
-  document.querySelectorAll(".app > div").forEach(x=>x.classList.add("hidden"));
+
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("clinic").classList.add("hidden");
+  document.getElementById("supplier").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+
 }
 
-function showClinic(){
-  hideAll();
-  document.getElementById("clinic").classList.remove("hidden");
-}
-
-function showSupplier(){
-  hideAll();
-  document.getElementById("supplier").classList.remove("hidden");
-}
 
 function goHome(){
+
   hideAll();
+
   document.getElementById("home").classList.remove("hidden");
+
+  stage="start";
+
+  request={
+    product:"",
+    quantity:"",
+    unit:"",
+    details:""
+  };
+
+  document.getElementById("chat").innerHTML="";
+
 }
 
-function confirmRequest(){
-  const text=document.getElementById("request").value.trim();
-  if(!text){
-    alert("Напишите, что нужно купить.");
+
+function openClinic(){
+
+  hideAll();
+
+  document.getElementById("clinic").classList.remove("hidden");
+
+  stage="start";
+
+  addAI(
+    "Что вам нужно купить? Опишите своими словами."
+  );
+
+}
+
+
+function openSupplier(){
+
+  hideAll();
+
+  document.getElementById("supplier").classList.remove("hidden");
+
+}
+
+
+function addAI(text){
+
+  const chat=document.getElementById("chat");
+
+  const div=document.createElement("div");
+
+  div.className="message ai";
+
+  div.innerText=text;
+
+  chat.appendChild(div);
+
+}
+
+
+function addUser(text){
+
+  const chat=document.getElementById("chat");
+
+  const div=document.createElement("div");
+
+  div.className="message user";
+
+  div.innerText=text;
+
+  chat.appendChild(div);
+
+}
+
+
+function sendMessage(){
+
+  const input=document.getElementById("userInput");
+
+  const text=input.value.trim();
+
+  if(!text) return;
+
+  addUser(text);
+
+  input.value="";
+
+  processMessage(text);
+
+}
+
+
+function processMessage(text){
+
+  /*
+    ЭТО ПОКА НЕ НАСТОЯЩИЙ AI.
+    Здесь мы проверяем сам сценарий.
+  */
+
+  if(stage==="start"){
+
+    request.product=text;
+
+    stage="quantity";
+
+    addAI(
+      "Хорошо. А сколько вам нужно?"
+    );
+
     return;
+
   }
 
-  document.getElementById("requestText").innerText=text;
-  document.getElementById("clinicStart").classList.add("hidden");
-  document.getElementById("clinicConfirm").classList.remove("hidden");
+
+  if(stage==="quantity"){
+
+    const number=text.match(/\d+(?:[.,]\d+)?/);
+
+    if(!number){
+
+      addAI(
+        "Мне нужно количество. Например: 20 упаковок, 5 штук или 2 коробки."
+      );
+
+      return;
+
+    }
+
+    request.quantity=number[0];
+
+    const lower=text.toLowerCase();
+
+    if(lower.includes("упаков")){
+
+      request.unit="упаковок";
+
+    }else if(lower.includes("короб")){
+
+      request.unit="коробок";
+
+    }else if(lower.includes("шт")){
+
+      request.unit="штук";
+
+    }else if(lower.includes("штук")){
+
+      request.unit="штук";
+
+    }else if(lower.includes("литр")){
+
+      request.unit="литров";
+
+    }else if(lower.includes("кг")){
+
+      request.unit="кг";
+
+    }else{
+
+      stage="unit";
+
+      addAI(
+        "Количество понял. В каких единицах: штук, упаковок, коробок, литров, кг или другое?"
+      );
+
+      return;
+
+    }
+
+    stage="details";
+
+    addAI(
+      "Есть ли важные характеристики товара: размер, цвет, модель, производитель или другие требования?"
+    );
+
+    return;
+
+  }
+
+
+  if(stage==="unit"){
+
+    request.unit=text;
+
+    stage="details";
+
+    addAI(
+      "Есть ли важные характеристики товара: размер, цвет, модель, производитель или другие требования?"
+    );
+
+    return;
+
+  }
+
+
+  if(stage==="details"){
+
+    const lower=text.toLowerCase();
+
+    if(
+      lower==="нет" ||
+      lower==="нету" ||
+      lower==="неважно" ||
+      lower==="не важно"
+    ){
+
+      request.details="Без дополнительных требований";
+
+    }else{
+
+      request.details=text;
+
+    }
+
+    showResult();
+
+  }
+
 }
 
-function backToRequest(){
-  document.getElementById("clinicConfirm").classList.add("hidden");
-  document.getElementById("clinicStart").classList.remove("hidden");
+
+function showResult(){
+
+  hideAll();
+
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("resultText").innerHTML=
+
+    "<b>Что купить:</b><br>"+
+    escapeHtml(request.product)+
+    "<br><br>"+
+
+    "<b>Количество:</b><br>"+
+    escapeHtml(request.quantity)+" "+
+    escapeHtml(request.unit)+
+    "<br><br>"+
+
+    "<b>Требования:</b><br>"+
+    escapeHtml(request.details);
+
 }
 
-function sendRequest(){
-  document.getElementById("clinicConfirm").classList.add("hidden");
-  document.getElementById("clinicWaiting").classList.remove("hidden");
+
+function escapeHtml(text){
+
+  const div=document.createElement("div");
+
+  div.innerText=text;
+
+  return div.innerHTML;
+
 }
 
-function showOffers(){
-  document.getElementById("clinicWaiting").classList.add("hidden");
-  document.getElementById("clinicOrder").classList.add("hidden");
-  document.getElementById("clinicOffers").classList.remove("hidden");
+
+function showSupplierOffer(){
+
+  document
+    .getElementById("supplierOffer")
+    .classList.remove("hidden");
+
 }
 
-function selectOffer(name,total){
-  document.getElementById("selectedOffer").innerText=
-    "Вы выбрали поставщика «"+name+"». Итоговая сумма: "+total+".";
-  document.getElementById("clinicOffers").classList.add("hidden");
-  document.getElementById("clinicOrder").classList.remove("hidden");
-}
-
-function finishOrder(){
-  document.getElementById("clinicOrder").classList.add("hidden");
-  document.getElementById("clinicDone").classList.remove("hidden");
-}
-
-function supplierPrice(){
-  document.getElementById("supplierOffer").classList.remove("hidden");
-  document.getElementById("supplierMessage").classList.add("hidden");
-}
-
-function supplierQuestion(){
-  document.getElementById("supplierOffer").classList.add("hidden");
-  const box=document.getElementById("supplierMessage");
-  box.classList.remove("hidden");
-  box.innerHTML="<h2>Уточнение</h2><p>Запрос отправлен клинике. Для MVP это сообщение пока отображается локально.</p>";
-}
-
-function supplierReject(){
-  document.getElementById("supplierOffer").classList.add("hidden");
-  const box=document.getElementById("supplierMessage");
-  box.classList.remove("hidden");
-  box.innerHTML="<h2>Заявка отклонена</h2><p>Вы сообщили, что не можете поставить товар.</p>";
-}
 
 function sendSupplierOffer(){
-  const price=document.getElementById("supplierPriceInput").value;
-  const delivery=document.getElementById("supplierDeliveryInput").value || 0;
-  const time=document.getElementById("supplierTimeInput").value || "не указан";
+
+  const price=document.getElementById("supplierPrice").value;
+
+  const delivery=document.getElementById("supplierDelivery").value || 0;
+
+  const time=document.getElementById("supplierTime").value || "не указан";
 
   if(!price){
+
     alert("Укажите цену товара.");
+
     return;
+
   }
 
-  const total=Number(price)+Number(delivery);
+  alert(
+    "Предложение отправлено.\n\n"+
+    "Цена: "+price+" ₽\n"+
+    "Доставка: "+delivery+" ₽\n"+
+    "Срок: "+time
+  );
 
-  document.getElementById("supplierOffer").classList.add("hidden");
-
-  const box=document.getElementById("supplierMessage");
-  box.classList.remove("hidden");
-  box.innerHTML=
-    "<h2>✅ Предложение отправлено</h2>"+
-    "<p>Товар: "+Number(price).toLocaleString("ru-RU")+" ₽</p>"+
-    "<p>Доставка: "+Number(delivery).toLocaleString("ru-RU")+" ₽</p>"+
-    "<p>Итого: <b>"+total.toLocaleString("ru-RU")+" ₽</b></p>"+
-    "<p>Срок: "+time+"</p>";
 }
+
 </script>
 
 </body>
