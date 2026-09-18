@@ -4,61 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Закупки AI</title>
-
 <style>
 *{box-sizing:border-box}
-
 body{
   margin:0;
   background:#f5f6f8;
   color:#111;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
-
 .app{
   max-width:600px;
   margin:auto;
-  padding:20px;
+  padding:20px
 }
-
-h1{
-  font-size:28px;
-  margin:8px 0;
-}
-
-h2{
-  font-size:21px;
-  margin:8px 0 14px;
-}
-
-p{
-  color:#666;
-  line-height:1.45;
-}
-
+h1{font-size:28px;margin:8px 0}
+h2{font-size:21px;margin:8px 0 14px}
+p{color:#666;line-height:1.45}
 .card{
-  background:white;
+  background:#fff;
   border-radius:18px;
   padding:18px;
   margin:14px 0;
-  box-shadow:0 2px 10px rgba(0,0,0,.06);
+  box-shadow:0 2px 10px rgba(0,0,0,.06)
 }
-
-textarea,
-input{
+textarea,input{
   width:100%;
   border:1px solid #ddd;
   border-radius:14px;
   padding:14px;
   font-size:16px;
   font-family:inherit;
-  outline:none;
+  outline:none
 }
-
-textarea{
-  resize:none;
-}
-
+textarea{resize:none}
 button{
   width:100%;
   border:0;
@@ -68,65 +46,43 @@ button{
   font-size:16px;
   font-weight:600;
   background:#111;
-  color:white;
+  color:#fff
 }
-
-button.secondary{
-  background:#e9eaed;
-  color:#111;
-}
-
-button.green{
-  background:#16833b;
-}
-
-.hidden{
-  display:none;
-}
-
+button.secondary{background:#e9eaed;color:#111}
+button.green{background:#16833b}
+button.red{background:#c93434}
+.hidden{display:none}
 .chat{
   display:flex;
   flex-direction:column;
   gap:10px;
-  margin-bottom:15px;
+  margin-bottom:15px
 }
-
 .message{
   max-width:88%;
   padding:12px 14px;
   border-radius:16px;
-  line-height:1.4;
+  line-height:1.4
 }
-
-.ai{
-  background:#eef1f5;
-  align-self:flex-start;
-}
-
-.user{
-  background:#111;
-  color:white;
-  align-self:flex-end;
-}
-
+.ai{background:#eef1f5;align-self:flex-start}
+.user{background:#111;color:#fff;align-self:flex-end}
 .summary{
   background:#f7f7f7;
   border-radius:14px;
   padding:14px;
-  margin-top:12px;
+  margin-top:12px
 }
-
-.small{
-  font-size:14px;
-  color:#777;
-}
-
 .badge{
   display:inline-block;
   background:#eef1f5;
   padding:6px 10px;
   border-radius:10px;
-  font-size:13px;
+  font-size:13px
+}
+.success{
+  font-size:42px;
+  text-align:center;
+  margin:10px 0
 }
 </style>
 </head>
@@ -135,33 +91,19 @@ button.green{
 
 <div class="app">
 
-<!-- ГЛАВНЫЙ ЭКРАН -->
-
 <div id="home">
-
   <h1>Закупки AI</h1>
-
   <p>
     Опишите своими словами, что нужно купить.
     AI уточнит недостающие данные и подготовит заявку.
   </p>
 
   <div class="card">
-
-    <button onclick="openClinic()">
-      🏥 Начать закупку
-    </button>
-
-    <button class="secondary" onclick="openSupplier()">
-      📦 Я поставщик
-    </button>
-
+    <button onclick="openClinic()">🏥 Начать закупку</button>
+    <button class="secondary" onclick="openSupplier()">📦 Я поставщик</button>
   </div>
-
 </div>
 
-
-<!-- КЛИНИКА -->
 
 <div id="clinic" class="hidden">
 
@@ -172,29 +114,81 @@ button.green{
     <div id="chat" class="chat"></div>
 
     <div id="inputArea">
-
       <textarea
         id="userInput"
         rows="3"
         placeholder="Например: нужны чёрные нитриловые перчатки M">
       </textarea>
 
-      <button onclick="sendMessage()">
-        Отправить
-      </button>
-
+      <button onclick="sendMessage()">Отправить</button>
     </div>
 
   </div>
 
+  <button class="secondary" onclick="goHome()">← Назад</button>
+
+</div>
+
+
+<div id="result" class="hidden">
+
+  <h1>Заявка готова</h1>
+
+  <div class="card">
+
+    <span class="badge">Проверено AI</span>
+
+    <div id="resultText" class="summary"></div>
+
+    <button class="green" onclick="sendToSuppliers()">
+      📤 Отправить поставщикам
+    </button>
+
+  </div>
+
   <button class="secondary" onclick="goHome()">
-    ← Назад
+    ← Главное меню
   </button>
 
 </div>
 
 
-<!-- ПОСТАВЩИК -->
+<div id="sent" class="hidden">
+
+  <div class="success">✅</div>
+
+  <h1>Заявка отправлена</h1>
+
+  <div class="card">
+
+    <p>
+      Заявка направлена подходящим поставщикам.
+    </p>
+
+    <span class="badge">Ожидаем предложения</span>
+
+    <div id="sentRequest" class="summary"></div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Поставщики получили запрос</h2>
+
+    <p>Для теста сейчас подключены:</p>
+
+    <p>📦 ДентСнаб</p>
+    <p>📦 МедТорг</p>
+    <p>📦 ДентМаркет</p>
+
+  </div>
+
+  <button class="secondary" onclick="goHome()">
+    ← Главное меню
+  </button>
+
+</div>
+
 
 <div id="supplier" class="hidden">
 
@@ -206,20 +200,19 @@ button.green{
 
     <h2>Запрос от клиники</h2>
 
-    <p>
-      Нужны 20 упаковок чёрных нитриловых перчаток,
-      размер M.
-    </p>
+    <div id="supplierRequest" class="summary">
+      Пока нет полученной заявки.
+    </div>
 
     <button onclick="showSupplierOffer()">
       💰 Дать цену
     </button>
 
-    <button class="secondary">
+    <button class="secondary" onclick="supplierQuestion()">
       ❓ Уточнить возможность
     </button>
 
-    <button class="secondary">
+    <button class="red" onclick="supplierReject()">
       ❌ Не могу поставить
     </button>
 
@@ -251,46 +244,20 @@ button.green{
 
   </div>
 
-  <button class="secondary" onclick="goHome()">
-    ← Назад
-  </button>
+  <div id="supplierMessage" class="card hidden"></div>
+
+  <button class="secondary" onclick="goHome()">← Назад</button>
 
 </div>
-
-
-<!-- РЕЗУЛЬТАТ -->
-
-<div id="result" class="hidden">
-
-  <h1>Заявка готова</h1>
-
-  <div class="card">
-
-    <span class="badge">Проверено AI</span>
-
-    <div id="resultText" class="summary"></div>
-
-    <button class="green">
-      📤 Отправить поставщикам
-    </button>
-
-  </div>
-
-  <button class="secondary" onclick="goHome()">
-    ← Главное меню
-  </button>
-
-</div>
-
 
 </div>
 
 
 <script>
 
-let stage = "start";
+let stage="start";
 
-let request = {
+let request={
   product:"",
   quantity:"",
   unit:"",
@@ -302,8 +269,9 @@ function hideAll(){
 
   document.getElementById("home").classList.add("hidden");
   document.getElementById("clinic").classList.add("hidden");
-  document.getElementById("supplier").classList.add("hidden");
   document.getElementById("result").classList.add("hidden");
+  document.getElementById("sent").classList.add("hidden");
+  document.getElementById("supplier").classList.add("hidden");
 
 }
 
@@ -313,17 +281,6 @@ function goHome(){
   hideAll();
 
   document.getElementById("home").classList.remove("hidden");
-
-  stage="start";
-
-  request={
-    product:"",
-    quantity:"",
-    unit:"",
-    details:""
-  };
-
-  document.getElementById("chat").innerHTML="";
 
 }
 
@@ -336,9 +293,16 @@ function openClinic(){
 
   stage="start";
 
-  addAI(
-    "Что вам нужно купить? Опишите своими словами."
-  );
+  request={
+    product:"",
+    quantity:"",
+    unit:"",
+    details:""
+  };
+
+  document.getElementById("chat").innerHTML="";
+
+  addAI("Что вам нужно купить? Опишите своими словами.");
 
 }
 
@@ -348,6 +312,19 @@ function openSupplier(){
   hideAll();
 
   document.getElementById("supplier").classList.remove("hidden");
+
+  if(request.product){
+
+    document.getElementById("supplierRequest").innerHTML=
+      "<b>"+escapeHtml(request.product)+"</b><br><br>"+
+      "Количество: "+
+      escapeHtml(request.quantity)+" "+
+      escapeHtml(request.unit)+
+      "<br><br>"+
+      "Требования: "+
+      escapeHtml(request.details);
+
+  }
 
 }
 
@@ -388,7 +365,7 @@ function sendMessage(){
 
   const text=input.value.trim();
 
-  if(!text) return;
+  if(!text)return;
 
   addUser(text);
 
@@ -401,23 +378,15 @@ function sendMessage(){
 
 function processMessage(text){
 
-  /*
-    ЭТО ПОКА НЕ НАСТОЯЩИЙ AI.
-    Здесь мы проверяем сам сценарий.
-  */
-
   if(stage==="start"){
 
     request.product=text;
 
     stage="quantity";
 
-    addAI(
-      "Хорошо. А сколько вам нужно?"
-    );
+    addAI("Хорошо. А сколько вам нужно?");
 
     return;
-
   }
 
 
@@ -432,7 +401,6 @@ function processMessage(text){
       );
 
       return;
-
     }
 
     request.quantity=number[0];
@@ -472,7 +440,6 @@ function processMessage(text){
       );
 
       return;
-
     }
 
     stage="details";
@@ -482,7 +449,6 @@ function processMessage(text){
     );
 
     return;
-
   }
 
 
@@ -497,7 +463,6 @@ function processMessage(text){
     );
 
     return;
-
   }
 
 
@@ -550,13 +515,25 @@ function showResult(){
 }
 
 
-function escapeHtml(text){
+function sendToSuppliers(){
 
-  const div=document.createElement("div");
+  hideAll();
 
-  div.innerText=text;
+  document.getElementById("sent").classList.remove("hidden");
 
-  return div.innerHTML;
+  document.getElementById("sentRequest").innerHTML=
+
+    "<b>Что купить:</b><br>"+
+    escapeHtml(request.product)+
+    "<br><br>"+
+
+    "<b>Количество:</b><br>"+
+    escapeHtml(request.quantity)+" "+
+    escapeHtml(request.unit)+
+    "<br><br>"+
+
+    "<b>Требования:</b><br>"+
+    escapeHtml(request.details);
 
 }
 
@@ -570,28 +547,79 @@ function showSupplierOffer(){
 }
 
 
+function supplierQuestion(){
+
+  const box=document.getElementById("supplierMessage");
+
+  box.classList.remove("hidden");
+
+  box.innerHTML=
+    "<h2>❓ Уточнение отправлено</h2>"+
+    "<p>В реальной версии это сообщение будет отправлено клинике.</p>";
+
+}
+
+
+function supplierReject(){
+
+  const box=document.getElementById("supplierMessage");
+
+  box.classList.remove("hidden");
+
+  box.innerHTML=
+    "<h2>Заявка отклонена</h2>"+
+    "<p>Поставщик сообщил, что не может выполнить заявку.</p>";
+
+}
+
+
 function sendSupplierOffer(){
 
   const price=document.getElementById("supplierPrice").value;
 
-  const delivery=document.getElementById("supplierDelivery").value || 0;
+  const delivery=
+    document.getElementById("supplierDelivery").value || 0;
 
-  const time=document.getElementById("supplierTime").value || "не указан";
+  const time=
+    document.getElementById("supplierTime").value || "не указан";
 
   if(!price){
 
     alert("Укажите цену товара.");
 
     return;
-
   }
 
-  alert(
-    "Предложение отправлено.\n\n"+
-    "Цена: "+price+" ₽\n"+
-    "Доставка: "+delivery+" ₽\n"+
-    "Срок: "+time
-  );
+  const total=
+    Number(price)+Number(delivery);
+
+  const box=document.getElementById("supplierMessage");
+
+  box.classList.remove("hidden");
+
+  box.innerHTML=
+    "<h2>✅ Предложение отправлено</h2>"+
+    "<p>Цена товара: "+
+    Number(price).toLocaleString("ru-RU")+
+    " ₽</p>"+
+    "<p>Доставка: "+
+    Number(delivery).toLocaleString("ru-RU")+
+    " ₽</p>"+
+    "<p><b>Итого: "+
+    total.toLocaleString("ru-RU")+
+    " ₽</b></p>"+
+    "<p>Срок: "+escapeHtml(time)+"</p>";
+
+}
+
+
+function escapeHtml(text){
+
+  const div=document.createElement("div");
+
+  div.innerText=text;
+
+  return div.innerHTML;
 
 }
 
