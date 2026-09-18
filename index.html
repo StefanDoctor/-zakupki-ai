@@ -112,13 +112,11 @@ button.secondary{
   margin-top:12px
 }
 
-.tag{
-  display:inline-block;
-  background:#f0f1f3;
-  border-radius:8px;
-  padding:5px 8px;
-  margin:3px;
-  font-size:13px
+.summary{
+  background:#f5f6f8;
+  border-radius:12px;
+  padding:14px;
+  margin-top:12px
 }
 </style>
 </head>
@@ -136,13 +134,17 @@ button.secondary{
 <script>
 
 let catalog = [];
-let stage = "start";
+
 let selectedProduct = null;
 let selectedForm = null;
 let selectedPackage = null;
+
 let quantity = null;
 let requirements = "";
 let originalRequest = "";
+
+let currentMatches = [];
+let currentForms = [];
 
 
 /* =========================
@@ -150,12 +152,14 @@ let originalRequest = "";
 ========================= */
 
 function normalizeText(text){
+
   return String(text || "")
     .toLowerCase()
     .replace(/ё/g,"е")
     .replace(/[^а-яa-z0-9]+/gi," ")
     .replace(/\s+/g," ")
     .trim();
+
 }
 
 
@@ -196,8 +200,7 @@ async function loadCatalog(){
 
 
 /* =========================
-   ПОИСК ПО ОФИЦИАЛЬНЫМ
-   НАЗВАНИЯМ
+   ПОИСК ПО НАЗВАНИЯМ
 ========================= */
 
 function findCatalogMatches(text){
@@ -235,7 +238,7 @@ function findCatalogMatches(text){
 
 
 /* =========================
-   ПОИСК ПО ALIASES
+   ТОЧНЫЙ ПОИСК ALIAS
 ========================= */
 
 function findAliasMatches(text){
@@ -254,9 +257,7 @@ function findAliasMatches(text){
 
     return item.aliases.some(alias => {
 
-      const normalizedAlias = normalizeText(alias);
-
-      return normalizedAlias === query;
+      return normalizeText(alias) === query;
 
     });
 
@@ -266,8 +267,7 @@ function findAliasMatches(text){
 
 
 /* =========================
-   ПОИСК АЛИАСА ВНУТРИ
-   БОЛЕЕ ДЛИННОЙ ФРАЗЫ
+   ПОИСК ALIAS ВНУТРИ ФРАЗЫ
 ========================= */
 
 function findAliasInsideText(text){
@@ -288,7 +288,7 @@ function findAliasInsideText(text){
 
       const normalizedAlias = normalizeText(alias);
 
-      if(normalizedAlias.length < 3){
+      if(normalizedAlias.length < 4){
         return false;
       }
 
@@ -313,15 +313,15 @@ function render(html){
 
 
 /* =========================
-   СТАРТОВАЯ СТРАНИЦА
+   НАЧАЛО
 ========================= */
 
 function showStart(){
 
-  stage = "start";
   selectedProduct = null;
   selectedForm = null;
   selectedPackage = null;
+
   quantity = null;
   requirements = "";
 
@@ -357,11 +357,11 @@ function showStart(){
 
 function processRequest(){
 
-  const input = document.getElementById("request");
+  const input =
+    document.getElementById("request");
 
-  const text = input
-    ? input.value.trim()
-    : "";
+  const text =
+    input ? input.value.trim() : "";
 
   if(!text){
     return;
@@ -369,52 +369,31 @@ function processRequest(){
 
   originalRequest = text;
 
-  /*
-    Сначала ищем точный alias.
-
-    Например:
-    "синий ультракаин"
-    "зелёный ультракаин"
-  */
-
-  let aliasMatches = findAliasMatches(text);
 
   /*
-    Если точного совпадения нет,
-    ищем alias внутри фразы.
-
-    Например:
-    "мне нужен синий ультракаин"
+    1. Сначала точный alias
   */
 
-  if(aliasMatches.length === 0){
+  let matches =
+    findAliasMatches(text);
 
-    aliasMatches = findAliasInsideText(text);
-
-  }
 
   /*
-    Если найден ровно один alias —
-    считаем товар однозначно определённым.
+    2. Затем alias внутри фразы
   */
 
-  if(aliasMatches.length === 1){
+  if(matches.length === 0){
 
-    selectedProduct = aliasMatches[0];
-
-    showProductConfirmation();
-
-    return;
+    matches =
+      findAliasInsideText(text);
 
   }
 
 
   /*
-    Если alias не дал результата,
-    ищем по официальному названию.
+    3. Если найден один товар,
+       выбираем его
   */
-
-  const matches = findCatalogMatches(text);
 
   if(matches.length === 1){
 
@@ -426,6 +405,27 @@ function processRequest(){
 
   }
 
+
+  /*
+    4. Если alias не помог,
+       ищем официальное название
+  */
+
+  matches =
+    findCatalogMatches(text);
+
+
+  if(matches.length === 1){
+
+    selectedProduct = matches[0];
+
+    showProductConfirmation();
+
+    return;
+
+  }
+
+
   if(matches.length > 1){
 
     showVariants(matches);
@@ -434,9 +434,6 @@ function processRequest(){
 
   }
 
-  /*
-    Если ничего не нашли.
-  */
 
   render(`
 
@@ -447,11 +444,6 @@ function processRequest(){
       <p>
         Я пока не смогла однозначно сопоставить
         ваш запрос с каталогом.
-      </p>
-
-      <p>
-        Попробуйте указать название, цвет,
-        производителя или другие характеристики.
       </p>
 
       <button onclick="showStart()">
@@ -466,10 +458,12 @@ function processRequest(){
 
 
 /* =========================
-   ПОКАЗ ВАРИАНТОВ
+   ВАРИАНТЫ
 ========================= */
 
 function showVariants(matches){
+
+  currentMatches = matches;
 
   let html = `
 
@@ -483,6 +477,7 @@ function showVariants(matches){
 
   `;
 
+
   matches.forEach((item,index)=>{
 
     html += `
@@ -492,23 +487,30 @@ function showVariants(matches){
         onclick="selectVariant(${index})"
       >
 
-        <strong>${escapeHtml(item.family || item.brand)}</strong><br>
+        <strong>
+          ${escapeHtml(item.family || item.brand)}
+        </strong>
+
+        <br>
 
         ${escapeHtml(item.variant || "")}
 
         ${
           item.active_ingredient
-            ? `<div class="small">
+            ? `
+              <div class="small">
                 ${escapeHtml(item.active_ingredient)}
-               </div>`
+              </div>
+            `
             : ""
         }
 
+      </button>
+
     `;
 
-    html += `</button>`;
-
   });
+
 
   html += `
 
@@ -523,7 +525,6 @@ function showVariants(matches){
 
   `;
 
-  window.currentMatches = matches;
 
   render(html);
 
@@ -536,7 +537,8 @@ function showVariants(matches){
 
 function selectVariant(index){
 
-  const item = window.currentMatches[index];
+  const item =
+    currentMatches[index];
 
   if(!item){
     return;
@@ -555,10 +557,6 @@ function selectVariant(index){
 
 function showProductConfirmation(){
 
-  if(!selectedProduct){
-    return;
-  }
-
   const item = selectedProduct;
 
   render(`
@@ -567,27 +565,32 @@ function showProductConfirmation(){
 
       <h2>Товар определён</h2>
 
-      <p>
+      <div class="summary">
 
         <strong>
           ${escapeHtml(item.brand || "")}
-        </strong><br>
+        </strong>
 
-        ${escapeHtml(item.family || "")}<br>
+        <br>
+
+        ${escapeHtml(item.family || "")}
+
+        <br>
 
         ${escapeHtml(item.variant || "")}
 
-      </p>
+        ${
+          item.active_ingredient
+            ? `
+              <br>
+              <span class="small">
+                ${escapeHtml(item.active_ingredient)}
+              </span>
+            `
+            : ""
+        }
 
-      ${
-        item.active_ingredient
-          ? `
-            <div class="small">
-              ${escapeHtml(item.active_ingredient)}
-            </div>
-          `
-          : ""
-      }
+      </div>
 
       <div class="success">
         Товар сопоставлен с каталогом.
@@ -612,12 +615,25 @@ function showProductConfirmation(){
 
 
 /* =========================
-   ФОРМЫ ТОВАРА
+   ВЫБОР ФОРМЫ
 ========================= */
 
 function showForms(){
 
-  const forms = selectedProduct.forms || [];
+  const forms =
+    Array.isArray(selectedProduct.forms)
+      ? selectedProduct.forms
+      : [];
+
+
+  if(forms.length === 0){
+
+    showQuantity();
+
+    return;
+
+  }
+
 
   if(forms.length === 1){
 
@@ -629,6 +645,10 @@ function showForms(){
 
   }
 
+
+  currentForms = forms;
+
+
   let html = `
 
     <div class="card">
@@ -636,6 +656,7 @@ function showForms(){
       <h2>Какая форма нужна?</h2>
 
   `;
+
 
   forms.forEach((form,index)=>{
 
@@ -646,21 +667,26 @@ function showForms(){
         onclick="selectForm(${index})"
       >
 
-        ${escapeHtml(form.form)}
+        <strong>
+          ${escapeHtml(form.form || "")}
+        </strong>
 
         ${
           form.volume_ml
-            ? `<div class="small">
+            ? `
+              <div class="small">
                 ${form.volume_ml} мл
-               </div>`
+              </div>
+            `
             : ""
         }
 
-    </button>
+      </button>
 
     `;
 
   });
+
 
   html += `
 
@@ -675,7 +701,6 @@ function showForms(){
 
   `;
 
-  window.currentForms = forms;
 
   render(html);
 
@@ -688,7 +713,12 @@ function showForms(){
 
 function selectForm(index){
 
-  selectedForm = window.currentForms[index];
+  selectedForm =
+    currentForms[index];
+
+  if(!selectedForm){
+    return;
+  }
 
   showPackages();
 
@@ -696,18 +726,14 @@ function selectForm(index){
 
 
 /* =========================
-   УПАКОВКА
+   ВЫБОР УПАКОВКИ
 ========================= */
 
 function showPackages(){
 
-  if(!selectedForm){
-    return;
-  }
-
   /*
-    Если у формы только один вариант упаковки,
-    сразу выбираем его.
+    Сейчас у каждой формы один вариант
+    упаковки, поэтому выбираем его автоматически.
   */
 
   selectedPackage = selectedForm;
@@ -723,11 +749,18 @@ function showPackages(){
 
 function showQuantity(){
 
-  const packageQuantity =
-    selectedPackage.package_quantity || 1;
+  const formName =
+    selectedForm?.form || "";
 
-  const packageUnit =
-    selectedPackage.package_unit || "штук";
+  const volume =
+    selectedForm?.volume_ml
+      ? `${selectedForm.volume_ml} мл`
+      : "";
+
+
+  const packageQuantity =
+    selectedPackage?.package_quantity || 1;
+
 
   render(`
 
@@ -735,29 +768,31 @@ function showQuantity(){
 
       <h2>Количество</h2>
 
-      <p>
+      <div class="summary">
 
-        ${escapeHtml(selectedForm.form || "")}
+        <strong>
+          ${escapeHtml(formName)}
+        </strong>
 
         ${
-          selectedForm.volume_ml
-            ? `, ${selectedForm.volume_ml} мл`
+          volume
+            ? `, ${escapeHtml(volume)}`
             : ""
         }
 
         <br>
 
         В упаковке:
-        ${packageQuantity}
-        ${escapeHtml(packageUnit)}
+        ${packageQuantity} шт.
 
-      </p>
+      </div>
 
       <input
         id="quantity"
         type="number"
         min="1"
         step="1"
+        value="3"
         placeholder="Количество упаковок"
       >
 
@@ -785,13 +820,17 @@ function showQuantity(){
 
 function saveQuantity(){
 
-  const input = document.getElementById("quantity");
+  const input =
+    document.getElementById("quantity");
 
-  const value = Number(input.value);
+  const value =
+    Number(input.value);
+
 
   if(!value || value < 1){
     return;
   }
+
 
   quantity = value;
 
@@ -843,17 +882,26 @@ function finishRequest(){
     document.getElementById("requirements");
 
   requirements =
-    input
-      ? input.value.trim()
+    input ? input.value.trim() : "";
+
+
+  const item =
+    selectedProduct;
+
+
+  const formName =
+    selectedForm?.form || "";
+
+
+  const volume =
+    selectedForm?.volume_ml
+      ? `${selectedForm.volume_ml} мл`
       : "";
 
-  const item = selectedProduct;
 
   const packageQuantity =
-    selectedPackage.package_quantity || 1;
+    selectedPackage?.package_quantity || 1;
 
-  const packageUnit =
-    selectedPackage.package_unit || "штук";
 
   render(`
 
@@ -865,29 +913,31 @@ function finishRequest(){
         Проверено AI
       </div>
 
-      <p>
+      <div class="summary">
 
-        <strong>Что купить:</strong><br>
+        <strong>Что купить:</strong>
+
+        <br><br>
 
         ${escapeHtml(item.brand || "")}
         ${escapeHtml(item.family || "")}
+
         — ${escapeHtml(item.variant || "")}
 
         <br>
 
-        ${escapeHtml(selectedForm.form || "")}
+        ${escapeHtml(formName)}
 
         ${
-          selectedForm.volume_ml
-            ? `, ${selectedForm.volume_ml} мл`
+          volume
+            ? `, ${escapeHtml(volume)}`
             : ""
         }
 
         <br>
 
         В упаковке:
-        ${packageQuantity}
-        ${escapeHtml(packageUnit)}
+        ${packageQuantity} шт.
 
         <br><br>
 
@@ -897,7 +947,8 @@ function finishRequest(){
 
         ${formatQuantity(quantity)}
 
-      </p>
+      </div>
+
 
       ${
         requirements
@@ -910,13 +961,16 @@ function finishRequest(){
           : ""
       }
 
+
       <div class="success">
         Товар сопоставлен с каталогом.
       </div>
 
+
       <button onclick="sendToSuppliers()">
         Отправить поставщикам
       </button>
+
 
       <button
         class="secondary"
@@ -933,7 +987,7 @@ function finishRequest(){
 
 
 /* =========================
-   ОТПРАВКА ПОСТАВЩИКАМ
+   ПОСТАВЩИКИ
 ========================= */
 
 function sendToSuppliers(){
@@ -967,7 +1021,7 @@ function sendToSuppliers(){
 
 
 /* =========================
-   ФОРМАТ КОЛИЧЕСТВА
+   КОЛИЧЕСТВО УПАКОВОК
 ========================= */
 
 function formatQuantity(n){
@@ -977,17 +1031,21 @@ function formatQuantity(n){
   const lastTwo = n % 100;
   const last = n % 10;
 
+
   if(lastTwo >= 11 && lastTwo <= 14){
     return n + " упаковок";
   }
+
 
   if(last === 1){
     return n + " упаковка";
   }
 
+
   if(last >= 2 && last <= 4){
     return n + " упаковки";
   }
+
 
   return n + " упаковок";
 
@@ -995,7 +1053,7 @@ function formatQuantity(n){
 
 
 /* =========================
-   БЕЗОПАСНЫЙ ВЫВОД ТЕКСТА
+   БЕЗОПАСНЫЙ ВЫВОД
 ========================= */
 
 function escapeHtml(value){
