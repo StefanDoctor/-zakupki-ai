@@ -4,22 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Закупки AI</title>
+
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
   background:#f5f6f8;
   color:#111;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
+
 .app{
   max-width:600px;
   margin:auto;
   padding:20px
 }
+
 h1{font-size:28px;margin:8px 0}
 h2{font-size:21px;margin:8px 0 14px}
-p{color:#666;line-height:1.45}
+
+p{
+  color:#666;
+  line-height:1.45
+}
+
 .card{
   background:#fff;
   border-radius:18px;
@@ -27,6 +36,7 @@ p{color:#666;line-height:1.45}
   margin:14px 0;
   box-shadow:0 2px 10px rgba(0,0,0,.06)
 }
+
 textarea,input{
   width:100%;
   border:1px solid #ddd;
@@ -36,7 +46,9 @@ textarea,input{
   font-family:inherit;
   outline:none
 }
+
 textarea{resize:none}
+
 button{
   width:100%;
   border:0;
@@ -48,30 +60,62 @@ button{
   background:#111;
   color:#fff
 }
-button.secondary{background:#e9eaed;color:#111}
-button.green{background:#16833b}
-button.red{background:#c93434}
+
+button.secondary{
+  background:#e9eaed;
+  color:#111
+}
+
+button.green{
+  background:#16833b
+}
+
+button.red{
+  background:#c93434
+}
+
+.optionButton{
+  background:#fff;
+  color:#111;
+  border:1px solid #ddd;
+  text-align:left;
+  font-weight:500
+}
+
 .hidden{display:none}
+
 .chat{
   display:flex;
   flex-direction:column;
   gap:10px;
   margin-bottom:15px
 }
+
 .message{
   max-width:88%;
   padding:12px 14px;
   border-radius:16px;
   line-height:1.4
 }
-.ai{background:#eef1f5;align-self:flex-start}
-.user{background:#111;color:#fff;align-self:flex-end}
+
+.ai{
+  background:#eef1f5;
+  align-self:flex-start
+}
+
+.user{
+  background:#111;
+  color:#fff;
+  align-self:flex-end
+}
+
 .summary{
   background:#f7f7f7;
   border-radius:14px;
   padding:14px;
   margin-top:12px
 }
+
 .badge{
   display:inline-block;
   background:#eef1f5;
@@ -79,6 +123,7 @@ button.red{background:#c93434}
   border-radius:10px;
   font-size:13px
 }
+
 .success{
   font-size:42px;
   text-align:center;
@@ -92,16 +137,26 @@ button.red{background:#c93434}
 <div class="app">
 
 <div id="home">
+
   <h1>Закупки AI</h1>
+
   <p>
     Опишите своими словами, что нужно купить.
     AI уточнит недостающие данные и подготовит заявку.
   </p>
 
   <div class="card">
-    <button onclick="openClinic()">🏥 Начать закупку</button>
-    <button class="secondary" onclick="openSupplier()">📦 Я поставщик</button>
+
+    <button onclick="openClinic()">
+      🏥 Начать закупку
+    </button>
+
+    <button class="secondary" onclick="openSupplier()">
+      📦 Я поставщик
+    </button>
+
   </div>
+
 </div>
 
 
@@ -114,18 +169,24 @@ button.red{background:#c93434}
     <div id="chat" class="chat"></div>
 
     <div id="inputArea">
+
       <textarea
         id="userInput"
         rows="3"
         placeholder="Например: нужны чёрные нитриловые перчатки M">
       </textarea>
 
-      <button onclick="sendMessage()">Отправить</button>
+      <button onclick="sendMessage()">
+        Отправить
+      </button>
+
     </div>
 
   </div>
 
-  <button class="secondary" onclick="goHome()">← Назад</button>
+  <button class="secondary" onclick="goHome()">
+    ← Назад
+  </button>
 
 </div>
 
@@ -136,7 +197,9 @@ button.red{background:#c93434}
 
   <div class="card">
 
-    <span class="badge">Проверено AI</span>
+    <span class="badge">
+      Проверено AI
+    </span>
 
     <div id="resultText" class="summary"></div>
 
@@ -165,7 +228,9 @@ button.red{background:#c93434}
       Заявка направлена подходящим поставщикам.
     </p>
 
-    <span class="badge">Ожидаем предложения</span>
+    <span class="badge">
+      Ожидаем предложения
+    </span>
 
     <div id="sentRequest" class="summary"></div>
 
@@ -196,7 +261,9 @@ button.red{background:#c93434}
 
   <div class="card">
 
-    <span class="badge">Новая заявка</span>
+    <span class="badge">
+      Новая заявка
+    </span>
 
     <h2>Запрос от клиники</h2>
 
@@ -217,6 +284,7 @@ button.red{background:#c93434}
     </button>
 
   </div>
+
 
   <div id="supplierOffer" class="card hidden">
 
@@ -244,9 +312,12 @@ button.red{background:#c93434}
 
   </div>
 
+
   <div id="supplierMessage" class="card hidden"></div>
 
-  <button class="secondary" onclick="goHome()">← Назад</button>
+  <button class="secondary" onclick="goHome()">
+    ← Назад
+  </button>
 
 </div>
 
@@ -257,13 +328,63 @@ button.red{background:#c93434}
 
 let stage="start";
 
+let catalog=[];
+let catalogReady=false;
+
 let request={
   product:"",
   quantity:"",
   unit:"",
-  details:""
+  details:"",
+  catalogMatches:[],
+  selectedCatalogItem:null,
+  selectedForm:null
 };
 
+
+/* =========================
+   ЗАГРУЗКА КАТАЛОГА
+========================= */
+
+async function loadCatalog(){
+
+  try{
+
+    const response=await fetch(
+      "./catalog.json?version="+Date.now(),
+      {cache:"no-store"}
+    );
+
+    if(!response.ok){
+      throw new Error("Не удалось загрузить каталог");
+    }
+
+    const data=await response.json();
+
+    if(!Array.isArray(data.catalog)){
+      throw new Error("Неверный формат каталога");
+    }
+
+    catalog=data.catalog;
+    catalogReady=true;
+
+  }catch(error){
+
+    catalog=[];
+    catalogReady=false;
+
+    console.log("Каталог недоступен:",error);
+
+  }
+
+}
+
+loadCatalog();
+
+
+/* =========================
+   НАВИГАЦИЯ
+========================= */
 
 function hideAll(){
 
@@ -297,12 +418,17 @@ function openClinic(){
     product:"",
     quantity:"",
     unit:"",
-    details:""
+    details:"",
+    catalogMatches:[],
+    selectedCatalogItem:null,
+    selectedForm:null
   };
 
   document.getElementById("chat").innerHTML="";
 
-  addAI("Что вам нужно купить? Опишите своими словами.");
+  addAI(
+    "Что вам нужно купить? Опишите своими словами."
+  );
 
 }
 
@@ -315,19 +441,16 @@ function openSupplier(){
 
   if(request.product){
 
-    document.getElementById("supplierRequest").innerHTML=
-      "<b>"+escapeHtml(request.product)+"</b><br><br>"+
-      "Количество: "+
-      escapeHtml(request.quantity)+" "+
-      escapeHtml(request.unit)+
-      "<br><br>"+
-      "Требования: "+
-      escapeHtml(request.details);
+    updateSupplierRequest();
 
   }
 
 }
 
+
+/* =========================
+   ЧАТ
+========================= */
 
 function addAI(text){
 
@@ -340,6 +463,8 @@ function addAI(text){
   div.innerText=text;
 
   chat.appendChild(div);
+
+  scrollChat();
 
 }
 
@@ -355,6 +480,26 @@ function addUser(text){
   div.innerText=text;
 
   chat.appendChild(div);
+
+  scrollChat();
+
+}
+
+
+function scrollChat(){
+
+  const chat=document.getElementById("chat");
+
+  setTimeout(function(){
+
+    chat.scrollTop=chat.scrollHeight;
+
+    window.scrollTo({
+      top:document.body.scrollHeight,
+      behavior:"smooth"
+    });
+
+  },50);
 
 }
 
@@ -376,19 +521,451 @@ function sendMessage(){
 }
 
 
+/* =========================
+   ПОИСК В КАТАЛОГЕ
+========================= */
+
+function findCatalogMatches(text){
+
+  if(!catalogReady){
+    return [];
+  }
+
+  const lower=text
+    .toLowerCase()
+    .trim();
+
+  if(!lower){
+    return [];
+  }
+
+  return catalog.filter(function(item){
+
+    const brand=(item.brand || "").toLowerCase();
+    const family=(item.family || "").toLowerCase();
+    const variant=(item.variant || "").toLowerCase();
+
+    return (
+      lower===brand ||
+      lower===family ||
+      lower===variant ||
+      brand.includes(lower) ||
+      family.includes(lower) ||
+      variant.includes(lower) ||
+      lower.includes(brand) ||
+      lower.includes(family)
+    );
+
+  });
+
+}
+
+
+/* =========================
+   ВЫБОР ВАРИАНТА ТОВАРА
+========================= */
+
+function showCatalogVariants(matches){
+
+  request.catalogMatches=matches;
+
+  stage="catalogVariant";
+
+  addAI(
+    "Я нашла несколько вариантов. Уточните, какой именно нужен:"
+  );
+
+  matches.forEach(function(item,index){
+
+    const button=document.createElement("button");
+
+    button.className="optionButton";
+
+    button.innerHTML=
+      "<b>"+escapeHtml(
+        (item.family || item.brand || "Товар")
+      )+"</b><br>"+
+      escapeHtml(item.variant || "");
+
+    button.onclick=function(){
+
+      addUser(
+        (item.family || item.brand || "")+
+        " — "+
+        (item.variant || "")
+      );
+
+      selectCatalogVariant(index);
+
+    };
+
+    document.getElementById("chat").appendChild(button);
+
+  });
+
+  scrollChat();
+
+}
+
+
+function selectCatalogVariant(index){
+
+  const item=request.catalogMatches[index];
+
+  if(!item){
+    return;
+  }
+
+  request.selectedCatalogItem=item;
+
+  request.product=
+    item.family+
+    " — "+
+    item.variant;
+
+  if(item.forms && item.forms.length>1){
+
+    showCatalogForms(item);
+
+    return;
+
+  }
+
+  if(item.forms && item.forms.length===1){
+
+    request.selectedForm=item.forms[0];
+
+    request.product=
+      item.family+
+      " — "+
+      item.variant+
+      ", "+
+      formatForm(item.forms[0]);
+
+  }
+
+  continueAfterCatalog();
+
+}
+
+
+function showCatalogForms(item){
+
+  stage="catalogForm";
+
+  addAI(
+    "Какую форму и упаковку нужно купить?"
+  );
+
+  item.forms.forEach(function(form,index){
+
+    const button=document.createElement("button");
+
+    button.className="optionButton";
+
+    button.innerHTML=
+      "<b>"+escapeHtml(
+        form.form || "Форма"
+      )+"</b><br>"+
+      escapeHtml(
+        formatFormDetails(form)
+      );
+
+    button.onclick=function(){
+
+      addUser(
+        (form.form || "")+
+        " — "+
+        formatFormDetails(form)
+      );
+
+      request.selectedForm=form;
+
+      request.product=
+        item.family+
+        " — "+
+        item.variant+
+        ", "+
+        formatForm(form);
+
+      continueAfterCatalog();
+
+    };
+
+    document.getElementById("chat").appendChild(button);
+
+  });
+
+  scrollChat();
+
+}
+
+
+function formatFormDetails(form){
+
+  let text="";
+
+  if(form.volume_ml){
+    text+=form.volume_ml+" мл";
+  }
+
+  if(form.package_quantity){
+
+    if(text){
+      text+=", ";
+    }
+
+    text+=form.package_quantity+" "+(
+      form.package_unit || "шт."
+    );
+
+  }
+
+  return text;
+
+}
+
+
+function formatForm(form){
+
+  return (
+    (form.form || "форма")+
+    " "+
+    formatFormDetails(form)
+  ).trim();
+
+}
+
+
+function continueAfterCatalog(){
+
+  stage="quantity";
+
+  addAI(
+    "Хорошо. А сколько вам нужно?"
+  );
+
+}
+
+
+/* =========================
+   ОБРАБОТКА СООБЩЕНИЙ
+========================= */
+
 function processMessage(text){
+
+  /* ---------- НАЧАЛО ---------- */
 
   if(stage==="start"){
 
     request.product=text;
 
+    const matches=findCatalogMatches(text);
+
+    if(matches.length>1){
+
+      showCatalogVariants(matches);
+
+      return;
+
+    }
+
+    if(matches.length===1){
+
+      const item=matches[0];
+
+      request.selectedCatalogItem=item;
+
+      request.product=
+        item.family+
+        " — "+
+        item.variant;
+
+      if(item.forms && item.forms.length>1){
+
+        showCatalogForms(item);
+
+        return;
+
+      }
+
+      if(item.forms && item.forms.length===1){
+
+        request.selectedForm=item.forms[0];
+
+        request.product=
+          item.family+
+          " — "+
+          item.variant+
+          ", "+
+          formatForm(item.forms[0]);
+
+      }
+
+    }
+
     stage="quantity";
 
-    addAI("Хорошо. А сколько вам нужно?");
+    addAI(
+      "Хорошо. А сколько вам нужно?"
+    );
 
     return;
+
   }
 
+
+  /* ---------- ВЫБОР ВАРИАНТА ТЕКСТОМ ---------- */
+
+  if(stage==="catalogVariant"){
+
+    const lower=text.toLowerCase();
+
+    let selected=null;
+
+    const number=text.match(/^\s*(\d+)\s*$/);
+
+    if(number){
+
+      const index=Number(number[1])-1;
+
+      if(
+        index>=0 &&
+        index<request.catalogMatches.length
+      ){
+
+        selected=index;
+
+      }
+
+    }
+
+    if(selected===null){
+
+      request.catalogMatches.forEach(
+        function(item,index){
+
+          const family=(item.family || "")
+            .toLowerCase();
+
+          const variant=(item.variant || "")
+            .toLowerCase();
+
+          if(
+            lower.includes(family) ||
+            lower.includes(variant)
+          ){
+
+            selected=index;
+
+          }
+
+        }
+      );
+
+    }
+
+    if(selected===null){
+
+      addAI(
+        "Не удалось однозначно определить вариант. Выберите один из вариантов выше или напишите его название."
+      );
+
+      return;
+
+    }
+
+    selectCatalogVariant(selected);
+
+    return;
+
+  }
+
+
+  /* ---------- ВЫБОР ФОРМЫ ТЕКСТОМ ---------- */
+
+  if(stage==="catalogForm"){
+
+    const lower=text.toLowerCase();
+
+    const item=request.selectedCatalogItem;
+
+    if(!item || !item.forms){
+      continueAfterCatalog();
+      return;
+    }
+
+    let selected=null;
+
+    const number=text.match(/^\s*(\d+)\s*$/);
+
+    if(number){
+
+      const index=Number(number[1])-1;
+
+      if(
+        index>=0 &&
+        index<item.forms.length
+      ){
+
+        selected=index;
+
+      }
+
+    }
+
+    if(selected===null){
+
+      item.forms.forEach(
+        function(form,index){
+
+          const formName=(form.form || "")
+            .toLowerCase();
+
+          const details=formatFormDetails(form)
+            .toLowerCase();
+
+          if(
+            lower.includes(formName) ||
+            lower.includes(details)
+          ){
+
+            selected=index;
+
+          }
+
+        }
+      );
+
+    }
+
+    if(selected===null){
+
+      addAI(
+        "Не удалось однозначно определить форму. Выберите вариант выше или напишите его название."
+      );
+
+      return;
+
+    }
+
+    request.selectedForm=item.forms[selected];
+
+    request.product=
+      item.family+
+      " — "+
+      item.variant+
+      ", "+
+      formatForm(item.forms[selected]);
+
+    continueAfterCatalog();
+
+    return;
+
+  }
+
+
+  /* ---------- КОЛИЧЕСТВО ---------- */
 
   if(stage==="quantity"){
 
@@ -401,6 +978,7 @@ function processMessage(text){
       );
 
       return;
+
     }
 
     request.quantity=number[0];
@@ -415,11 +993,10 @@ function processMessage(text){
 
       request.unit="коробок";
 
-    }else if(lower.includes("шт")){
-
-      request.unit="штук";
-
-    }else if(lower.includes("штук")){
+    }else if(
+      lower.includes("шт") ||
+      lower.includes("штук")
+    ){
 
       request.unit="штук";
 
@@ -431,6 +1008,10 @@ function processMessage(text){
 
       request.unit="кг";
 
+    }else if(lower.includes("мл")){
+
+      request.unit="мл";
+
     }else{
 
       stage="unit";
@@ -440,6 +1021,7 @@ function processMessage(text){
       );
 
       return;
+
     }
 
     stage="details";
@@ -449,8 +1031,11 @@ function processMessage(text){
     );
 
     return;
+
   }
 
+
+  /* ---------- ЕДИНИЦА ---------- */
 
   if(stage==="unit"){
 
@@ -463,8 +1048,11 @@ function processMessage(text){
     );
 
     return;
+
   }
 
+
+  /* ---------- ДОПОЛНИТЕЛЬНЫЕ ТРЕБОВАНИЯ ---------- */
 
   if(stage==="details"){
 
@@ -477,7 +1065,8 @@ function processMessage(text){
       lower==="не важно"
     ){
 
-      request.details="Без дополнительных требований";
+      request.details=
+        "Без дополнительных требований";
 
     }else{
 
@@ -492,6 +1081,45 @@ function processMessage(text){
 }
 
 
+/* =========================
+   ИТОГОВАЯ ЗАЯВКА
+========================= */
+
+function getRequestHtml(){
+
+  let html="";
+
+  html+=
+    "<b>Что купить:</b><br>"+
+    escapeHtml(request.product);
+
+  html+=
+    "<br><br>"+
+    "<b>Количество:</b><br>"+
+    escapeHtml(request.quantity)+
+    " "+
+    escapeHtml(request.unit);
+
+  html+=
+    "<br><br>"+
+    "<b>Требования:</b><br>"+
+    escapeHtml(request.details);
+
+  if(request.selectedCatalogItem){
+
+    html+=
+      "<br><br>"+
+      "<span class='badge'>"+
+      "Товар сопоставлен с каталогом"+
+      "</span>";
+
+  }
+
+  return html;
+
+}
+
+
 function showResult(){
 
   hideAll();
@@ -499,18 +1127,7 @@ function showResult(){
   document.getElementById("result").classList.remove("hidden");
 
   document.getElementById("resultText").innerHTML=
-
-    "<b>Что купить:</b><br>"+
-    escapeHtml(request.product)+
-    "<br><br>"+
-
-    "<b>Количество:</b><br>"+
-    escapeHtml(request.quantity)+" "+
-    escapeHtml(request.unit)+
-    "<br><br>"+
-
-    "<b>Требования:</b><br>"+
-    escapeHtml(request.details);
+    getRequestHtml();
 
 }
 
@@ -522,18 +1139,19 @@ function sendToSuppliers(){
   document.getElementById("sent").classList.remove("hidden");
 
   document.getElementById("sentRequest").innerHTML=
+    getRequestHtml();
 
-    "<b>Что купить:</b><br>"+
-    escapeHtml(request.product)+
-    "<br><br>"+
+}
 
-    "<b>Количество:</b><br>"+
-    escapeHtml(request.quantity)+" "+
-    escapeHtml(request.unit)+
-    "<br><br>"+
 
-    "<b>Требования:</b><br>"+
-    escapeHtml(request.details);
+/* =========================
+   ПОСТАВЩИК
+========================= */
+
+function updateSupplierRequest(){
+
+  document.getElementById("supplierRequest").innerHTML=
+    getRequestHtml();
 
 }
 
@@ -549,51 +1167,61 @@ function showSupplierOffer(){
 
 function supplierQuestion(){
 
-  const box=document.getElementById("supplierMessage");
+  const box=
+    document.getElementById("supplierMessage");
 
   box.classList.remove("hidden");
 
   box.innerHTML=
     "<h2>❓ Уточнение отправлено</h2>"+
-    "<p>В реальной версии это сообщение будет отправлено клинике.</p>";
+    "<p>"+
+    "В реальной версии это сообщение будет отправлено клинике."+
+    "</p>";
 
 }
 
 
 function supplierReject(){
 
-  const box=document.getElementById("supplierMessage");
+  const box=
+    document.getElementById("supplierMessage");
 
   box.classList.remove("hidden");
 
   box.innerHTML=
     "<h2>Заявка отклонена</h2>"+
-    "<p>Поставщик сообщил, что не может выполнить заявку.</p>";
+    "<p>"+
+    "Поставщик сообщил, что не может выполнить заявку."+
+    "</p>";
 
 }
 
 
 function sendSupplierOffer(){
 
-  const price=document.getElementById("supplierPrice").value;
+  const price=
+    document.getElementById("supplierPrice").value;
 
   const delivery=
     document.getElementById("supplierDelivery").value || 0;
 
   const time=
-    document.getElementById("supplierTime").value || "не указан";
+    document.getElementById("supplierTime").value ||
+    "не указан";
 
   if(!price){
 
     alert("Укажите цену товара.");
 
     return;
+
   }
 
   const total=
     Number(price)+Number(delivery);
 
-  const box=document.getElementById("supplierMessage");
+  const box=
+    document.getElementById("supplierMessage");
 
   box.classList.remove("hidden");
 
@@ -608,16 +1236,22 @@ function sendSupplierOffer(){
     "<p><b>Итого: "+
     total.toLocaleString("ru-RU")+
     " ₽</b></p>"+
-    "<p>Срок: "+escapeHtml(time)+"</p>";
+    "<p>Срок: "+
+    escapeHtml(time)+
+    "</p>";
 
 }
 
+
+/* =========================
+   БЕЗОПАСНЫЙ ВЫВОД ТЕКСТА
+========================= */
 
 function escapeHtml(text){
 
   const div=document.createElement("div");
 
-  div.innerText=text;
+  div.innerText=text == null ? "" : String(text);
 
   return div.innerHTML;
 
