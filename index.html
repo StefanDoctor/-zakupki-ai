@@ -21,8 +21,15 @@ body{
   padding:20px
 }
 
-h1{font-size:28px;margin:8px 0}
-h2{font-size:21px;margin:8px 0 14px}
+h1{
+  font-size:28px;
+  margin:8px 0
+}
+
+h2{
+  font-size:21px;
+  margin:8px 0 14px
+}
 
 p{
   color:#666;
@@ -37,97 +44,81 @@ p{
   box-shadow:0 2px 10px rgba(0,0,0,.06)
 }
 
-textarea,input{
+input,textarea{
   width:100%;
   border:1px solid #ddd;
-  border-radius:14px;
+  border-radius:12px;
   padding:14px;
   font-size:16px;
   font-family:inherit;
   outline:none
 }
 
-textarea{resize:none}
+textarea{
+  min-height:100px;
+  resize:vertical
+}
+
+input:focus,textarea:focus{
+  border-color:#888
+}
 
 button{
   width:100%;
   border:0;
-  border-radius:14px;
-  padding:15px;
+  border-radius:13px;
+  padding:14px;
   margin-top:10px;
   font-size:16px;
   font-weight:600;
+  cursor:pointer;
   background:#111;
   color:#fff
 }
 
 button.secondary{
-  background:#e9eaed;
+  background:#eee;
   color:#111
 }
 
-button.green{
-  background:#16833b
-}
-
-button.red{
-  background:#c93434
-}
-
-.optionButton{
+.option{
   background:#fff;
-  color:#111;
   border:1px solid #ddd;
+  color:#111;
   text-align:left;
-  font-weight:500
-}
-
-.hidden{display:none}
-
-.chat{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-bottom:15px
-}
-
-.message{
-  max-width:88%;
-  padding:12px 14px;
-  border-radius:16px;
-  line-height:1.4
-}
-
-.ai{
-  background:#eef1f5;
-  align-self:flex-start
-}
-
-.user{
-  background:#111;
-  color:#fff;
-  align-self:flex-end
-}
-
-.summary{
-  background:#f7f7f7;
-  border-radius:14px;
+  margin:8px 0;
   padding:14px;
-  margin-top:12px
+  border-radius:13px
 }
 
-.badge{
-  display:inline-block;
-  background:#eef1f5;
-  padding:6px 10px;
-  border-radius:10px;
-  font-size:13px
+.small{
+  font-size:14px;
+  color:#777
 }
 
 .success{
-  font-size:42px;
-  text-align:center;
-  margin:10px 0
+  background:#eef9f0;
+  color:#176b2c;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px
+}
+
+.error{
+  background:#fff0f0;
+  color:#a11;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px
+}
+
+.tag{
+  display:inline-block;
+  background:#f0f1f3;
+  border-radius:8px;
+  padding:5px 8px;
+  margin:3px;
+  font-size:13px
 }
 </style>
 </head>
@@ -136,374 +127,22 @@ button.red{
 
 <div class="app">
 
-<div id="home">
+  <h1>Закупки AI</h1>
 
-<h1>Закупки AI</h1>
-
-<p>
-Опишите своими словами, что нужно купить.
-AI уточнит недостающие данные и подготовит заявку.
-</p>
-
-<div class="card">
-
-<button onclick="openClinic()">
-🏥 Начать закупку
-</button>
-
-<button class="secondary" onclick="openSupplier()">
-📦 Я поставщик
-</button>
+  <div id="app"></div>
 
 </div>
-
-</div>
-
-
-<div id="clinic" class="hidden">
-
-<h1>Новая закупка</h1>
-
-<div class="card">
-
-<div id="chat" class="chat"></div>
-
-<div id="inputArea">
-
-<textarea
-id="userInput"
-rows="3"
-placeholder="Например: нужны чёрные нитриловые перчатки M">
-</textarea>
-
-<button onclick="sendMessage()">
-Отправить
-</button>
-
-</div>
-
-</div>
-
-<button class="secondary" onclick="goHome()">
-← Назад
-</button>
-
-</div>
-
-
-<div id="result" class="hidden">
-
-<h1>Заявка готова</h1>
-
-<div class="card">
-
-<span class="badge">
-Проверено AI
-</span>
-
-<div id="resultText" class="summary"></div>
-
-<button class="green" onclick="sendToSuppliers()">
-📤 Отправить поставщикам
-</button>
-
-</div>
-
-<button class="secondary" onclick="goHome()">
-← Главное меню
-</button>
-
-</div>
-
-
-<div id="sent" class="hidden">
-
-<div class="success">✅</div>
-
-<h1>Заявка отправлена</h1>
-
-<div class="card">
-
-<p>
-Заявка направлена подходящим поставщикам.
-</p>
-
-<span class="badge">
-Ожидаем предложения
-</span>
-
-<div id="sentRequest" class="summary"></div>
-
-</div>
-
-<div class="card">
-
-<h2>Поставщики получили запрос</h2>
-
-<p>Для теста сейчас подключены:</p>
-
-<p>📦 ДентСнаб</p>
-<p>📦 МедТорг</p>
-<p>📦 ДентМаркет</p>
-
-</div>
-
-<button class="secondary" onclick="goHome()">
-← Главное меню
-</button>
-
-</div>
-
-
-<div id="supplier" class="hidden">
-
-<h1>📦 Поставщик</h1>
-
-<div class="card">
-
-<span class="badge">
-Новая заявка
-</span>
-
-<h2>Запрос от клиники</h2>
-
-<div id="supplierRequest" class="summary">
-Пока нет полученной заявки.
-</div>
-
-<button onclick="showSupplierOffer()">
-💰 Дать цену
-</button>
-
-<button class="secondary" onclick="supplierQuestion()">
-❓ Уточнить возможность
-</button>
-
-<button class="red" onclick="supplierReject()">
-❌ Не могу поставить
-</button>
-
-</div>
-
-
-<div id="supplierOffer" class="card hidden">
-
-<h2>Ваше предложение</h2>
-
-<input
-id="supplierPrice"
-type="number"
-placeholder="Цена товара, ₽">
-
-<input
-id="supplierDelivery"
-type="number"
-placeholder="Доставка, ₽"
-style="margin-top:10px">
-
-<input
-id="supplierTime"
-placeholder="Срок доставки"
-style="margin-top:10px">
-
-<button class="green" onclick="sendSupplierOffer()">
-Отправить предложение
-</button>
-
-</div>
-
-
-<div id="supplierMessage" class="card hidden"></div>
-
-<button class="secondary" onclick="goHome()">
-← Назад
-</button>
-
-</div>
-
-</div>
-
 
 <script>
 
-let stage="start";
-
-let catalog=[];
-let catalogReady=false;
-
-let request={
-  product:"",
-  quantity:"",
-  unit:"",
-  details:"",
-  catalogMatches:[],
-  selectedCatalogItem:null,
-  selectedForm:null
-};
-
-
-/* =========================
-   КАТАЛОГ
-========================= */
-
-async function loadCatalog(){
-
-  try{
-
-    const response=await fetch(
-      "./catalog.json?version="+Date.now(),
-      {cache:"no-store"}
-    );
-
-    if(!response.ok){
-      throw new Error("Каталог недоступен");
-    }
-
-    const data=await response.json();
-
-    if(!Array.isArray(data.catalog)){
-      throw new Error("Неверный каталог");
-    }
-
-    catalog=data.catalog;
-    catalogReady=true;
-
-  }catch(error){
-
-    catalog=[];
-    catalogReady=false;
-
-    console.log("Каталог недоступен:",error);
-
-  }
-
-}
-
-loadCatalog();
-
-
-/* =========================
-   НАВИГАЦИЯ
-========================= */
-
-function hideAll(){
-
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("clinic").classList.add("hidden");
-  document.getElementById("result").classList.add("hidden");
-  document.getElementById("sent").classList.add("hidden");
-  document.getElementById("supplier").classList.add("hidden");
-
-}
-
-
-function goHome(){
-
-  hideAll();
-
-  document.getElementById("home").classList.remove("hidden");
-
-}
-
-
-function openClinic(){
-
-  hideAll();
-
-  document.getElementById("clinic").classList.remove("hidden");
-
-  stage="start";
-
-  request={
-    product:"",
-    quantity:"",
-    unit:"",
-    details:"",
-    catalogMatches:[],
-    selectedCatalogItem:null,
-    selectedForm:null
-  };
-
-  document.getElementById("chat").innerHTML="";
-
-  addAI("Что вам нужно купить? Опишите своими словами.");
-
-}
-
-
-function openSupplier(){
-
-  hideAll();
-
-  document.getElementById("supplier").classList.remove("hidden");
-
-  if(request.product){
-    updateSupplierRequest();
-  }
-
-}
-
-
-/* =========================
-   ЧАТ
-========================= */
-
-function addAI(text){
-
-  const div=document.createElement("div");
-
-  div.className="message ai";
-  div.innerText=text;
-
-  document.getElementById("chat").appendChild(div);
-
-  scrollChat();
-
-}
-
-
-function addUser(text){
-
-  const div=document.createElement("div");
-
-  div.className="message user";
-  div.innerText=text;
-
-  document.getElementById("chat").appendChild(div);
-
-  scrollChat();
-
-}
-
-
-function scrollChat(){
-
-  setTimeout(function(){
-
-    window.scrollTo({
-      top:document.body.scrollHeight,
-      behavior:"smooth"
-    });
-
-  },50);
-
-}
-
-
-function sendMessage(){
-
-  const input=document.getElementById("userInput");
-  const text=input.value.trim();
-
-  if(!text)return;
-
-  addUser(text);
-
-  input.value="";
-
-  processMessage(text);
-
-}
+let catalog = [];
+let stage = "start";
+let selectedProduct = null;
+let selectedForm = null;
+let selectedPackage = null;
+let quantity = null;
+let requirements = "";
+let originalRequest = "";
 
 
 /* =========================
@@ -511,76 +150,84 @@ function sendMessage(){
 ========================= */
 
 function normalizeText(text){
-
   return String(text || "")
     .toLowerCase()
     .replace(/ё/g,"е")
-    .replace(/[«»"']/g,"")
-    .replace(/[.,;:!?()[\]{}]/g," ")
+    .replace(/[^а-яa-z0-9]+/gi," ")
     .replace(/\s+/g," ")
     .trim();
+}
+
+
+/* =========================
+   ЗАГРУЗКА КАТАЛОГА
+========================= */
+
+async function loadCatalog(){
+
+  try{
+
+    const response = await fetch(
+      "catalog.json?v=" + Date.now(),
+      {
+        cache:"no-store"
+      }
+    );
+
+    if(!response.ok){
+      throw new Error("Ошибка загрузки каталога");
+    }
+
+    const data = await response.json();
+
+    catalog = Array.isArray(data.catalog)
+      ? data.catalog
+      : [];
+
+  }catch(error){
+
+    console.error(error);
+
+    catalog = [];
+
+  }
 
 }
 
 
 /* =========================
-   ПОИСК В КАТАЛОГЕ
+   ПОИСК ПО ОФИЦИАЛЬНЫМ
+   НАЗВАНИЯМ
 ========================= */
 
 function findCatalogMatches(text){
 
-  if(!catalogReady){
+  const query = normalizeText(text);
+
+  if(!query){
     return [];
   }
 
-  const lower=normalizeText(text);
+  return catalog.filter(item => {
 
-  if(!lower){
-    return [];
-  }
+    const fields = [
+      item.brand,
+      item.family,
+      item.variant,
+      item.active_ingredient
+    ];
 
-  return catalog.filter(function(item){
+    return fields.some(field => {
 
-    const brand=normalizeText(item.brand);
-    const family=normalizeText(item.family);
-    const variant=normalizeText(item.variant);
+      const value = normalizeText(field);
 
-    const aliases=Array.isArray(item.aliases)
-      ? item.aliases.map(normalizeText)
-      : [];
+      return value &&
+        (
+          query.includes(value) ||
+          value.includes(query)
+        );
 
-    /*
-      Официальные названия.
-    */
-
-    if(
-      lower===brand ||
-      lower===family ||
-      lower===variant ||
-      lower.includes(family) ||
-      lower.includes(brand)
-    ){
-      return true;
-    }
-
-    /*
-      Синонимы / профессиональные названия.
-    */
-
-    for(const alias of aliases){
-
-      if(!alias)continue;
-
-      if(
-        lower===alias ||
-        lower.includes(alias)
-      ){
-        return true;
-      }
-
-    }
-
-    return false;
+    });
 
   });
 
@@ -588,37 +235,297 @@ function findCatalogMatches(text){
 
 
 /* =========================
-   ПОИСК ПО СИНОНИМУ
+   ПОИСК ПО ALIASES
 ========================= */
 
 function findAliasMatches(text){
 
-  if(!catalogReady){
+  const query = normalizeText(text);
+
+  if(!query){
     return [];
   }
 
-  const lower=normalizeText(text);
+  return catalog.filter(item => {
 
-  if(!lower){
-    return [];
-  }
+    if(!Array.isArray(item.aliases)){
+      return false;
+    }
 
-  return catalog.filter(function(item){
+    return item.aliases.some(alias => {
 
-    const aliases=Array.isArray(item.aliases)
-      ? item.aliases.map(normalizeText)
-      : [];
+      const normalizedAlias = normalizeText(alias);
 
-    return aliases.some(function(alias){
-
-      return (
-        lower===alias ||
-        lower.includes(alias)
-      );
+      return normalizedAlias === query;
 
     });
 
   });
+
+}
+
+
+/* =========================
+   ПОИСК АЛИАСА ВНУТРИ
+   БОЛЕЕ ДЛИННОЙ ФРАЗЫ
+========================= */
+
+function findAliasInsideText(text){
+
+  const query = normalizeText(text);
+
+  if(!query){
+    return [];
+  }
+
+  return catalog.filter(item => {
+
+    if(!Array.isArray(item.aliases)){
+      return false;
+    }
+
+    return item.aliases.some(alias => {
+
+      const normalizedAlias = normalizeText(alias);
+
+      if(normalizedAlias.length < 3){
+        return false;
+      }
+
+      return query.includes(normalizedAlias);
+
+    });
+
+  });
+
+}
+
+
+/* =========================
+   ОТОБРАЖЕНИЕ
+========================= */
+
+function render(html){
+
+  document.getElementById("app").innerHTML = html;
+
+}
+
+
+/* =========================
+   СТАРТОВАЯ СТРАНИЦА
+========================= */
+
+function showStart(){
+
+  stage = "start";
+  selectedProduct = null;
+  selectedForm = null;
+  selectedPackage = null;
+  quantity = null;
+  requirements = "";
+
+  render(`
+
+    <div class="card">
+
+      <h2>Новая закупка</h2>
+
+      <p>
+        Что вам нужно купить? Опишите своими словами.
+      </p>
+
+      <textarea
+        id="request"
+        placeholder="Например: синий ультракаин, 3 упаковки"
+      ></textarea>
+
+      <button onclick="processRequest()">
+        Продолжить
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =========================
+   ОБРАБОТКА ЗАПРОСА
+========================= */
+
+function processRequest(){
+
+  const input = document.getElementById("request");
+
+  const text = input
+    ? input.value.trim()
+    : "";
+
+  if(!text){
+    return;
+  }
+
+  originalRequest = text;
+
+  /*
+    Сначала ищем точный alias.
+
+    Например:
+    "синий ультракаин"
+    "зелёный ультракаин"
+  */
+
+  let aliasMatches = findAliasMatches(text);
+
+  /*
+    Если точного совпадения нет,
+    ищем alias внутри фразы.
+
+    Например:
+    "мне нужен синий ультракаин"
+  */
+
+  if(aliasMatches.length === 0){
+
+    aliasMatches = findAliasInsideText(text);
+
+  }
+
+  /*
+    Если найден ровно один alias —
+    считаем товар однозначно определённым.
+  */
+
+  if(aliasMatches.length === 1){
+
+    selectedProduct = aliasMatches[0];
+
+    showProductConfirmation();
+
+    return;
+
+  }
+
+
+  /*
+    Если alias не дал результата,
+    ищем по официальному названию.
+  */
+
+  const matches = findCatalogMatches(text);
+
+  if(matches.length === 1){
+
+    selectedProduct = matches[0];
+
+    showProductConfirmation();
+
+    return;
+
+  }
+
+  if(matches.length > 1){
+
+    showVariants(matches);
+
+    return;
+
+  }
+
+  /*
+    Если ничего не нашли.
+  */
+
+  render(`
+
+    <div class="card">
+
+      <h2>Не удалось найти товар</h2>
+
+      <p>
+        Я пока не смогла однозначно сопоставить
+        ваш запрос с каталогом.
+      </p>
+
+      <p>
+        Попробуйте указать название, цвет,
+        производителя или другие характеристики.
+      </p>
+
+      <button onclick="showStart()">
+        Назад
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =========================
+   ПОКАЗ ВАРИАНТОВ
+========================= */
+
+function showVariants(matches){
+
+  let html = `
+
+    <div class="card">
+
+      <h2>Я нашла несколько вариантов.</h2>
+
+      <p>
+        Уточните, какой именно нужен:
+      </p>
+
+  `;
+
+  matches.forEach((item,index)=>{
+
+    html += `
+
+      <button
+        class="option"
+        onclick="selectVariant(${index})"
+      >
+
+        <strong>${escapeHtml(item.family || item.brand)}</strong><br>
+
+        ${escapeHtml(item.variant || "")}
+
+        ${
+          item.active_ingredient
+            ? `<div class="small">
+                ${escapeHtml(item.active_ingredient)}
+               </div>`
+            : ""
+        }
+
+    `;
+
+    html += `</button>`;
+
+  });
+
+  html += `
+
+      <button
+        class="secondary"
+        onclick="showStart()"
+      >
+        Назад
+      </button>
+
+    </div>
+
+  `;
+
+  window.currentMatches = matches;
+
+  render(html);
 
 }
 
@@ -627,810 +534,493 @@ function findAliasMatches(text){
    ВЫБОР ВАРИАНТА
 ========================= */
 
-function showCatalogVariants(matches){
+function selectVariant(index){
 
-  request.catalogMatches=matches;
+  const item = window.currentMatches[index];
 
-  stage="catalogVariant";
+  if(!item){
+    return;
+  }
 
-  addAI(
-    "Я нашла несколько вариантов. Уточните, какой именно нужен:"
-  );
+  selectedProduct = item;
 
-  matches.forEach(function(item,index){
+  showProductConfirmation();
 
-    const button=document.createElement("button");
+}
 
-    button.className="optionButton";
 
-    button.innerHTML=
-      "<b>"+
-      escapeHtml(item.family || item.brand || "Товар")+
-      "</b><br>"+
-      escapeHtml(item.variant || "");
+/* =========================
+   ПОДТВЕРЖДЕНИЕ ТОВАРА
+========================= */
 
-    button.onclick=function(){
+function showProductConfirmation(){
 
-      addUser(
-        (item.family || item.brand || "")+
-        " — "+
-        (item.variant || "")
-      );
+  if(!selectedProduct){
+    return;
+  }
 
-      selectCatalogVariant(index);
+  const item = selectedProduct;
 
-    };
+  render(`
 
-    document.getElementById("chat").appendChild(button);
+    <div class="card">
+
+      <h2>Товар определён</h2>
+
+      <p>
+
+        <strong>
+          ${escapeHtml(item.brand || "")}
+        </strong><br>
+
+        ${escapeHtml(item.family || "")}<br>
+
+        ${escapeHtml(item.variant || "")}
+
+      </p>
+
+      ${
+        item.active_ingredient
+          ? `
+            <div class="small">
+              ${escapeHtml(item.active_ingredient)}
+            </div>
+          `
+          : ""
+      }
+
+      <div class="success">
+        Товар сопоставлен с каталогом.
+      </div>
+
+      <button onclick="showForms()">
+        Продолжить
+      </button>
+
+      <button
+        class="secondary"
+        onclick="showStart()"
+      >
+        Изменить запрос
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =========================
+   ФОРМЫ ТОВАРА
+========================= */
+
+function showForms(){
+
+  const forms = selectedProduct.forms || [];
+
+  if(forms.length === 1){
+
+    selectedForm = forms[0];
+
+    showPackages();
+
+    return;
+
+  }
+
+  let html = `
+
+    <div class="card">
+
+      <h2>Какая форма нужна?</h2>
+
+  `;
+
+  forms.forEach((form,index)=>{
+
+    html += `
+
+      <button
+        class="option"
+        onclick="selectForm(${index})"
+      >
+
+        ${escapeHtml(form.form)}
+
+        ${
+          form.volume_ml
+            ? `<div class="small">
+                ${form.volume_ml} мл
+               </div>`
+            : ""
+        }
+
+    </button>
+
+    `;
 
   });
 
-  scrollChat();
+  html += `
 
-}
+      <button
+        class="secondary"
+        onclick="showProductConfirmation()"
+      >
+        Назад
+      </button>
 
+    </div>
 
-function selectCatalogVariant(index){
+  `;
 
-  const item=request.catalogMatches[index];
+  window.currentForms = forms;
 
-  if(!item)return;
-
-  request.selectedCatalogItem=item;
-
-  request.product=
-    item.family+
-    " — "+
-    item.variant;
-
-  if(item.forms && item.forms.length>1){
-
-    showCatalogForms(item);
-    return;
-
-  }
-
-  if(item.forms && item.forms.length===1){
-
-    request.selectedForm=item.forms[0];
-
-    request.product=
-      item.family+
-      " — "+
-      item.variant+
-      ", "+
-      formatForm(item.forms[0]);
-
-  }
-
-  continueAfterCatalog();
+  render(html);
 
 }
 
 
 /* =========================
-   ФОРМА И УПАКОВКА
+   ВЫБОР ФОРМЫ
 ========================= */
 
-function showCatalogForms(item){
+function selectForm(index){
 
-  stage="catalogForm";
+  selectedForm = window.currentForms[index];
 
-  addAI(
-    "Какую форму и упаковку нужно купить?"
-  );
-
-  item.forms.forEach(function(form,index){
-
-    const button=document.createElement("button");
-
-    button.className="optionButton";
-
-    button.innerHTML=
-      "<b>"+
-      escapeHtml(form.form || "Форма")+
-      "</b><br>"+
-      escapeHtml(formatFormDetails(form));
-
-    button.onclick=function(){
-
-      addUser(
-        (form.form || "")+
-        " — "+
-        formatFormDetails(form)
-      );
-
-      request.selectedForm=form;
-
-      request.product=
-        item.family+
-        " — "+
-        item.variant+
-        ", "+
-        formatForm(form);
-
-      continueAfterCatalog();
-
-    };
-
-    document.getElementById("chat").appendChild(button);
-
-  });
-
-  scrollChat();
-
-}
-
-
-function formatFormDetails(form){
-
-  let text="";
-
-  if(form.volume_ml){
-    text+=form.volume_ml+" мл";
-  }
-
-  if(form.package_quantity){
-
-    if(text){
-      text+=", ";
-    }
-
-    text+=
-      form.package_quantity+
-      " "+
-      (form.package_unit || "шт.");
-
-  }
-
-  return text;
-
-}
-
-
-function formatForm(form){
-
-  return (
-    (form.form || "форма")+
-    " "+
-    formatFormDetails(form)
-  ).trim();
-
-}
-
-
-function continueAfterCatalog(){
-
-  stage="quantity";
-
-  addAI("Хорошо. А сколько вам нужно?");
+  showPackages();
 
 }
 
 
 /* =========================
-   ОБРАБОТКА СООБЩЕНИЙ
+   УПАКОВКА
 ========================= */
 
-function processMessage(text){
+function showPackages(){
 
-  /* ---------- НАЧАЛО ---------- */
-
-  if(stage==="start"){
-
-    request.product=text;
-
-    const aliasMatches=findAliasMatches(text);
-
-    /*
-      Если пользователь написал однозначный синоним,
-      сразу выбираем соответствующий товар.
-    */
-
-    if(aliasMatches.length===1){
-
-      const item=aliasMatches[0];
-
-      request.selectedCatalogItem=item;
-
-      request.product=
-        item.family+
-        " — "+
-        item.variant;
-
-      /*
-        Если в тексте есть синоним и конкретный товар,
-        не заставляем пользователя выбирать повторно.
-      */
-
-      if(item.forms && item.forms.length>1){
-
-        showCatalogForms(item);
-        return;
-
-      }
-
-      if(item.forms && item.forms.length===1){
-
-        request.selectedForm=item.forms[0];
-
-        request.product=
-          item.family+
-          " — "+
-          item.variant+
-          ", "+
-          formatForm(item.forms[0]);
-
-      }
-
-      continueAfterCatalog();
-      return;
-
-    }
-
-
-    const matches=findCatalogMatches(text);
-
-    if(matches.length>1){
-
-      showCatalogVariants(matches);
-      return;
-
-    }
-
-
-    if(matches.length===1){
-
-      const item=matches[0];
-
-      request.selectedCatalogItem=item;
-
-      request.product=
-        item.family+
-        " — "+
-        item.variant;
-
-      if(item.forms && item.forms.length>1){
-
-        showCatalogForms(item);
-        return;
-
-      }
-
-      if(item.forms && item.forms.length===1){
-
-        request.selectedForm=item.forms[0];
-
-        request.product=
-          item.family+
-          " — "+
-          item.variant+
-          ", "+
-          formatForm(item.forms[0]);
-
-      }
-
-    }
-
-
-    stage="quantity";
-
-    addAI("Хорошо. А сколько вам нужно?");
-
+  if(!selectedForm){
     return;
-
   }
 
+  /*
+    Если у формы только один вариант упаковки,
+    сразу выбираем его.
+  */
 
-  /* ---------- ВЫБОР ВАРИАНТА ---------- */
+  selectedPackage = selectedForm;
 
-  if(stage==="catalogVariant"){
+  showQuantity();
 
-    const lower=normalizeText(text);
+}
 
-    let selected=null;
 
-    const number=text.match(/^\s*(\d+)\s*$/);
+/* =========================
+   КОЛИЧЕСТВО
+========================= */
 
-    if(number){
+function showQuantity(){
 
-      const index=Number(number[1])-1;
+  const packageQuantity =
+    selectedPackage.package_quantity || 1;
 
-      if(
-        index>=0 &&
-        index<request.catalogMatches.length
-      ){
-        selected=index;
-      }
+  const packageUnit =
+    selectedPackage.package_unit || "штук";
 
-    }
+  render(`
 
-    if(selected===null){
+    <div class="card">
 
-      request.catalogMatches.forEach(
-        function(item,index){
+      <h2>Количество</h2>
 
-          const family=normalizeText(item.family);
-          const variant=normalizeText(item.variant);
+      <p>
 
-          if(
-            lower.includes(family) ||
-            lower.includes(variant)
-          ){
-            selected=index;
-          }
+        ${escapeHtml(selectedForm.form || "")}
 
+        ${
+          selectedForm.volume_ml
+            ? `, ${selectedForm.volume_ml} мл`
+            : ""
         }
-      );
 
-    }
+        <br>
 
-    if(selected===null){
+        В упаковке:
+        ${packageQuantity}
+        ${escapeHtml(packageUnit)}
 
-      addAI(
-        "Не удалось однозначно определить вариант. Выберите один из вариантов выше или напишите его название."
-      );
+      </p>
 
-      return;
+      <input
+        id="quantity"
+        type="number"
+        min="1"
+        step="1"
+        placeholder="Количество упаковок"
+      >
 
-    }
+      <button onclick="saveQuantity()">
+        Продолжить
+      </button>
 
-    selectCatalogVariant(selected);
+      <button
+        class="secondary"
+        onclick="showForms()"
+      >
+        Назад
+      </button>
 
+    </div>
+
+  `);
+
+}
+
+
+/* =========================
+   СОХРАНЕНИЕ КОЛИЧЕСТВА
+========================= */
+
+function saveQuantity(){
+
+  const input = document.getElementById("quantity");
+
+  const value = Number(input.value);
+
+  if(!value || value < 1){
     return;
-
   }
 
+  quantity = value;
 
-  /* ---------- ФОРМА ---------- */
+  showRequirements();
 
-  if(stage==="catalogForm"){
+}
 
-    const lower=normalizeText(text);
 
-    const item=request.selectedCatalogItem;
+/* =========================
+   ТРЕБОВАНИЯ
+========================= */
 
-    if(!item || !item.forms){
+function showRequirements(){
 
-      continueAfterCatalog();
-      return;
+  render(`
 
-    }
+    <div class="card">
 
-    let selected=null;
+      <h2>Дополнительные требования</h2>
 
-    const number=text.match(/^\s*(\d+)\s*$/);
+      <p>
+        Например: хороший срок годности,
+        конкретный производитель или доставка.
+      </p>
 
-    if(number){
+      <textarea
+        id="requirements"
+        placeholder="Можно оставить пустым"
+      ></textarea>
 
-      const index=Number(number[1])-1;
+      <button onclick="finishRequest()">
+        Сформировать заявку
+      </button>
 
-      if(
-        index>=0 &&
-        index<item.forms.length
-      ){
-        selected=index;
+    </div>
+
+  `);
+
+}
+
+
+/* =========================
+   ФИНАЛЬНАЯ ЗАЯВКА
+========================= */
+
+function finishRequest(){
+
+  const input =
+    document.getElementById("requirements");
+
+  requirements =
+    input
+      ? input.value.trim()
+      : "";
+
+  const item = selectedProduct;
+
+  const packageQuantity =
+    selectedPackage.package_quantity || 1;
+
+  const packageUnit =
+    selectedPackage.package_unit || "штук";
+
+  render(`
+
+    <div class="card">
+
+      <h2>Заявка готова</h2>
+
+      <div class="success">
+        Проверено AI
+      </div>
+
+      <p>
+
+        <strong>Что купить:</strong><br>
+
+        ${escapeHtml(item.brand || "")}
+        ${escapeHtml(item.family || "")}
+        — ${escapeHtml(item.variant || "")}
+
+        <br>
+
+        ${escapeHtml(selectedForm.form || "")}
+
+        ${
+          selectedForm.volume_ml
+            ? `, ${selectedForm.volume_ml} мл`
+            : ""
+        }
+
+        <br>
+
+        В упаковке:
+        ${packageQuantity}
+        ${escapeHtml(packageUnit)}
+
+        <br><br>
+
+        <strong>
+          Количество:
+        </strong>
+
+        ${formatQuantity(quantity)}
+
+      </p>
+
+      ${
+        requirements
+          ? `
+            <p>
+              <strong>Требования:</strong><br>
+              ${escapeHtml(requirements)}
+            </p>
+          `
+          : ""
       }
 
-    }
-
-    if(selected===null){
-
-      item.forms.forEach(
-        function(form,index){
-
-          const formName=normalizeText(form.form);
-          const details=normalizeText(
-            formatFormDetails(form)
-          );
-
-          if(
-            lower.includes(formName) ||
-            lower.includes(details)
-          ){
-            selected=index;
-          }
-
-        }
-      );
-
-    }
-
-    if(selected===null){
-
-      addAI(
-        "Не удалось однозначно определить форму. Выберите вариант выше или напишите его название."
-      );
-
-      return;
-
-    }
-
-    request.selectedForm=item.forms[selected];
-
-    request.product=
-      item.family+
-      " — "+
-      item.variant+
-      ", "+
-      formatForm(item.forms[selected]);
-
-    continueAfterCatalog();
-
-    return;
-
-  }
-
-
-  /* ---------- КОЛИЧЕСТВО ---------- */
-
-  if(stage==="quantity"){
-
-    const number=text.match(/\d+(?:[.,]\d+)?/);
-
-    if(!number){
-
-      addAI(
-        "Мне нужно количество. Например: 20 упаковок, 5 штук или 2 коробки."
-      );
-
-      return;
-
-    }
-
-    request.quantity=number[0].replace(",", ".");
-
-    const lower=normalizeText(text);
-
-    if(lower.includes("упаков")){
-
-      request.unit="упаковка";
-
-    }else if(lower.includes("короб")){
-
-      request.unit="коробка";
-
-    }else if(
-      lower.includes("шт") ||
-      lower.includes("штук")
-    ){
-
-      request.unit="штука";
-
-    }else if(lower.includes("литр")){
-
-      request.unit="литр";
-
-    }else if(lower.includes("кг")){
-
-      request.unit="кг";
-
-    }else if(lower.includes("мл")){
-
-      request.unit="мл";
-
-    }else{
-
-      stage="unit";
-
-      addAI(
-        "Количество понял. В каких единицах: штук, упаковок, коробок, литров, кг или другое?"
-      );
-
-      return;
-
-    }
-
-    stage="details";
-
-    addAI(
-      "Есть ли важные характеристики товара: размер, цвет, модель, производитель или другие требования?"
-    );
-
-    return;
-
-  }
-
-
-  /* ---------- ЕДИНИЦА ---------- */
-
-  if(stage==="unit"){
-
-    request.unit=text;
-
-    stage="details";
-
-    addAI(
-      "Есть ли важные характеристики товара: размер, цвет, модель, производитель или другие требования?"
-    );
-
-    return;
-
-  }
-
-
-  /* ---------- ТРЕБОВАНИЯ ---------- */
-
-  if(stage==="details"){
-
-    const lower=normalizeText(text);
-
-    if(
-      lower==="нет" ||
-      lower==="нету" ||
-      lower==="неважно" ||
-      lower==="не важно"
-    ){
-
-      request.details=
-        "Без дополнительных требований";
-
-    }else{
-
-      request.details=text;
-
-    }
-
-    showResult();
-
-  }
+      <div class="success">
+        Товар сопоставлен с каталогом.
+      </div>
+
+      <button onclick="sendToSuppliers()">
+        Отправить поставщикам
+      </button>
+
+      <button
+        class="secondary"
+        onclick="showStart()"
+      >
+        Новая закупка
+      </button>
+
+    </div>
+
+  `);
 
 }
 
 
 /* =========================
-   СКЛОНЕНИЕ
+   ОТПРАВКА ПОСТАВЩИКАМ
 ========================= */
-
-function pluralize(number,one,few,many){
-
-  const n=Math.abs(Number(number));
-
-  const mod10=n%10;
-  const mod100=n%100;
-
-  if(mod10===1 && mod100!==11){
-    return one;
-  }
-
-  if(
-    mod10>=2 &&
-    mod10<=4 &&
-    !(mod100>=12 && mod100<=14)
-  ){
-    return few;
-  }
-
-  return many;
-
-}
-
-
-function quantityText(){
-
-  const number=request.quantity;
-
-  if(request.unit==="упаковка"){
-
-    return (
-      number+
-      " "+
-      pluralize(
-        number,
-        "упаковка",
-        "упаковки",
-        "упаковок"
-      )
-    );
-
-  }
-
-  if(request.unit==="коробка"){
-
-    return (
-      number+
-      " "+
-      pluralize(
-        number,
-        "коробка",
-        "коробки",
-        "коробок"
-      )
-    );
-
-  }
-
-  if(request.unit==="штука"){
-
-    return (
-      number+
-      " "+
-      pluralize(
-        number,
-        "штука",
-        "штуки",
-        "штук"
-      )
-    );
-
-  }
-
-  return number+" "+request.unit;
-
-}
-
-
-/* =========================
-   ИТОГОВАЯ ЗАЯВКА
-========================= */
-
-function getRequestHtml(){
-
-  let html="";
-
-  html+=
-    "<b>Что купить:</b><br>"+
-    escapeHtml(request.product);
-
-  html+=
-    "<br><br>"+
-    "<b>Количество:</b><br>"+
-    escapeHtml(quantityText());
-
-  html+=
-    "<br><br>"+
-    "<b>Требования:</b><br>"+
-    escapeHtml(request.details);
-
-  if(request.selectedCatalogItem){
-
-    html+=
-      "<br><br>"+
-      "<span class='badge'>"+
-      "Товар сопоставлен с каталогом"+
-      "</span>";
-
-  }
-
-  return html;
-
-}
-
-
-function showResult(){
-
-  hideAll();
-
-  document.getElementById("result").classList.remove("hidden");
-
-  document.getElementById("resultText").innerHTML=
-    getRequestHtml();
-
-}
-
 
 function sendToSuppliers(){
 
-  hideAll();
+  render(`
 
-  document.getElementById("sent").classList.remove("hidden");
+    <div class="card">
 
-  document.getElementById("sentRequest").innerHTML=
-    getRequestHtml();
+      <h2>Заявка отправлена</h2>
+
+      <div class="success">
+
+        Заявка направлена подходящим поставщикам.
+
+      </div>
+
+      <p>
+        Когда поставщики ответят,
+        здесь появятся их предложения.
+      </p>
+
+      <button onclick="showStart()">
+        Новая закупка
+      </button>
+
+    </div>
+
+  `);
 
 }
 
 
 /* =========================
-   ПОСТАВЩИК
+   ФОРМАТ КОЛИЧЕСТВА
 ========================= */
 
-function updateSupplierRequest(){
+function formatQuantity(n){
 
-  document.getElementById("supplierRequest").innerHTML=
-    getRequestHtml();
+  n = Number(n);
 
-}
+  const lastTwo = n % 100;
+  const last = n % 10;
 
-
-function showSupplierOffer(){
-
-  document
-    .getElementById("supplierOffer")
-    .classList.remove("hidden");
-
-}
-
-
-function supplierQuestion(){
-
-  const box=document.getElementById("supplierMessage");
-
-  box.classList.remove("hidden");
-
-  box.innerHTML=
-    "<h2>❓ Уточнение отправлено</h2>"+
-    "<p>"+
-    "В реальной версии это сообщение будет отправлено клинике."+
-    "</p>";
-
-}
-
-
-function supplierReject(){
-
-  const box=document.getElementById("supplierMessage");
-
-  box.classList.remove("hidden");
-
-  box.innerHTML=
-    "<h2>Заявка отклонена</h2>"+
-    "<p>"+
-    "Поставщик сообщил, что не может выполнить заявку."+
-    "</p>";
-
-}
-
-
-function sendSupplierOffer(){
-
-  const price=
-    document.getElementById("supplierPrice").value;
-
-  const delivery=
-    document.getElementById("supplierDelivery").value || 0;
-
-  const time=
-    document.getElementById("supplierTime").value ||
-    "не указан";
-
-  if(!price){
-
-    alert("Укажите цену товара.");
-    return;
-
+  if(lastTwo >= 11 && lastTwo <= 14){
+    return n + " упаковок";
   }
 
-  const total=
-    Number(price)+Number(delivery);
+  if(last === 1){
+    return n + " упаковка";
+  }
 
-  const box=
-    document.getElementById("supplierMessage");
+  if(last >= 2 && last <= 4){
+    return n + " упаковки";
+  }
 
-  box.classList.remove("hidden");
-
-  box.innerHTML=
-    "<h2>✅ Предложение отправлено</h2>"+
-    "<p>Цена товара: "+
-    Number(price).toLocaleString("ru-RU")+
-    " ₽</p>"+
-    "<p>Доставка: "+
-    Number(delivery).toLocaleString("ru-RU")+
-    " ₽</p>"+
-    "<p><b>Итого: "+
-    total.toLocaleString("ru-RU")+
-    " ₽</b></p>"+
-    "<p>Срок: "+
-    escapeHtml(time)+
-    "</p>";
+  return n + " упаковок";
 
 }
 
 
 /* =========================
-   БЕЗОПАСНЫЙ ВЫВОД
+   БЕЗОПАСНЫЙ ВЫВОД ТЕКСТА
 ========================= */
 
-function escapeHtml(text){
+function escapeHtml(value){
 
-  const div=document.createElement("div");
-
-  div.innerText=
-    text==null ? "" : String(text);
-
-  return div.innerHTML;
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
+
+
+/* =========================
+   ЗАПУСК
+========================= */
+
+(async function(){
+
+  await loadCatalog();
+
+  showStart();
+
+})();
 
 </script>
 
