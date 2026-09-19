@@ -1,83 +1,289 @@
 {
-  "version": "1.1",
-  "catalog": [
+  "version": "2.0",
+  "categories": [
     {
-      "brand": "Ультракаин",
-      "family": "Ультракаин Д-С форте",
-      "variant": "1:100 000",
-      "active_ingredient": "артикаин с эпинефрином",
-      "aliases": [
-        "синий ультракаин",
-        "синий",
-        "синяя карпула",
-        "синяя карпула ультракаина",
-        "ультракаин синий",
-        "ультракаин дс форте синий"
-      ],
-      "forms": [
+      "id": "anesthetics",
+      "name": "Анестетики",
+      "requestFields": [
         {
-          "form": "карпулы",
-          "volume_ml": 1.7,
-          "package_quantity": 100,
-          "package_unit": "цилиндрических ампул"
+          "id": "active_ingredient",
+          "label": "Действующее вещество",
+          "type": "text",
+          "required": false
         },
         {
-          "form": "разбиваемые ампулы",
-          "volume_ml": 2,
-          "package_quantity": 10,
-          "package_unit": "ампул"
+          "id": "vasoconstrictor",
+          "label": "Адреналин / эпинефрин",
+          "type": "text",
+          "required": false
+        },
+        {
+          "id": "form",
+          "label": "Форма",
+          "type": "select",
+          "required": true
+        },
+        {
+          "id": "volume_ml",
+          "label": "Объём",
+          "type": "number",
+          "required": false
+        },
+        {
+          "id": "package_quantity",
+          "label": "Количество в упаковке",
+          "type": "number",
+          "required": false
+        }
+      ],
+      "supplierFields": [
+        {
+          "id": "price",
+          "label": "Цена товара",
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": "deliveryCost",
+          "label": "Стоимость доставки",
+          "type": "number",
+          "required": false
+        },
+        {
+          "id": "deliveryTime",
+          "label": "Срок поставки",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "expiry",
+          "label": "Срок годности",
+          "type": "text",
+          "required": false,
+          "placeholder": "например: 05.2027"
+        },
+        {
+          "id": "comment",
+          "label": "Дополнительная информация",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "products": [
+        {
+          "brand": "Ультракаин",
+          "family": "Ультракаин Д-С форте",
+          "variant": "1:100 000",
+          "active_ingredient": "артикаин с эпинефрином",
+          "aliases": [
+            "синий ультракаин",
+            "синяя карпула",
+            "синяя карпула ультракаина",
+            "ультракаин синий",
+            "ультракаин дс форте синий"
+          ],
+          "forms": [
+            {
+              "form": "карпулы",
+              "volume_ml": 1.7,
+              "package_quantity": 100,
+              "package_unit": "шт."
+            },
+            {
+              "form": "разбиваемые ампулы",
+              "volume_ml": 2,
+              "package_quantity": 10,
+              "package_unit": "ампул"
+            }
+          ]
+        },
+        {
+          "brand": "Ультракаин",
+          "family": "Ультракаин Д-С",
+          "variant": "1:200 000",
+          "active_ingredient": "артикаин с эпинефрином",
+          "aliases": [
+            "зеленый ультракаин",
+            "зелёный ультракаин",
+            "зеленая карпула",
+            "зелёная карпула",
+            "зеленая карпула ультракаина",
+            "зелёная карпула ультракаина",
+            "ультракаин зеленый",
+            "ультракаин зелёный",
+            "ультракаин дс зеленый",
+            "ультракаин дс зелёный"
+          ],
+          "forms": [
+            {
+              "form": "карпулы",
+              "volume_ml": 1.7,
+              "package_quantity": 100,
+              "package_unit": "шт."
+            },
+            {
+              "form": "разбиваемые ампулы",
+              "volume_ml": 2,
+              "package_quantity": 10,
+              "package_unit": "ампул"
+            }
+          ]
+        },
+        {
+          "brand": "Ультракаин",
+          "family": "Ультракаин Д",
+          "variant": "без адреналина",
+          "active_ingredient": "артикаин",
+          "aliases": [
+            "ультракаин без адреналина",
+            "ультракаин без эпинефрина"
+          ],
+          "forms": [
+            {
+              "form": "карпулы",
+              "volume_ml": 1.7,
+              "package_quantity": 10,
+              "package_unit": "шт."
+            }
+          ]
         }
       ]
     },
     {
-      "brand": "Ультракаин",
-      "family": "Ультракаин Д-С",
-      "variant": "1:200 000",
-      "active_ingredient": "артикаин с эпинефрином",
-      "aliases": [
-        "зеленый ультракаин",
-        "зелёный ультракаин",
-        "зеленый",
-        "зелёный",
-        "зеленая карпула",
-        "зелёная карпула",
-        "зеленая карпула ультракаина",
-        "зелёная карпула ультракаина",
-        "ультракаин зеленый",
-        "ультракаин зелёный",
-        "ультракаин дс зеленый",
-        "ультракаин дс зелёный"
-      ],
-      "forms": [
+      "id": "composites",
+      "name": "Композиты",
+      "requestFields": [
         {
-          "form": "карпулы",
-          "volume_ml": 1.7,
-          "package_quantity": 100,
-          "package_unit": "цилиндрических ампул"
+          "id": "brand",
+          "label": "Производитель",
+          "type": "text",
+          "required": false
         },
         {
-          "form": "разбиваемые ампулы",
-          "volume_ml": 2,
-          "package_quantity": 10,
-          "package_unit": "ампул"
-        }
-      ]
-    },
-    {
-      "brand": "Ультракаин",
-      "family": "Ультракаин Д",
-      "variant": "без адреналина",
-      "active_ingredient": "артикаин",
-      "aliases": [
-        "ультракаин без адреналина",
-        "ультракаин без эпинефрина"
-      ],
-      "forms": [
+          "id": "family",
+          "label": "Линейка / название",
+          "type": "text",
+          "required": false
+        },
         {
-          "form": "карпулы",
-          "volume_ml": 1.7,
-          "package_quantity": 10,
-          "package_unit": "цилиндрических ампул"
+          "id": "shade",
+          "label": "Оттенок",
+          "type": "text",
+          "required": false
+        },
+        {
+          "id": "form",
+          "label": "Форма / фасовка",
+          "type": "text",
+          "required": false
+        },
+        {
+          "id": "consistency",
+          "label": "Консистенция",
+          "type": "text",
+          "required": false
+        },
+        {
+          "id": "purpose",
+          "label": "Назначение",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "clarificationQuestions": [
+        "Нужен конкретный производитель или подойдут аналоги?",
+        "Какой оттенок нужен?",
+        "Какая фасовка нужна?",
+        "Есть ли требования к типу или консистенции композита?",
+        "Для какого назначения нужен материал?"
+      ],
+      "supplierFields": [
+        {
+          "id": "price",
+          "label": "Цена товара",
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": "deliveryCost",
+          "label": "Стоимость доставки",
+          "type": "number",
+          "required": false
+        },
+        {
+          "id": "deliveryTime",
+          "label": "Срок поставки",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "expiry",
+          "label": "Срок годности",
+          "type": "text",
+          "required": false,
+          "placeholder": "например: 05.2028"
+        },
+        {
+          "id": "comment",
+          "label": "Дополнительная информация",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Например: другой оттенок, аналог, акция, остаток на складе"
+        }
+      ],
+      "products": [
+        {
+          "brand": "3M",
+          "family": "Filtek Z250",
+          "aliases": [
+            "filtek z250",
+            "филтек z250",
+            "филтек з250",
+            "z250"
+          ],
+          "variants": [
+            {
+              "shades": [
+                "A1",
+                "A2",
+                "A3",
+                "A3.5",
+                "A4",
+                "B1",
+                "B2",
+                "B3",
+                "C2",
+                "C3",
+                "D2",
+                "OA2",
+                "OA3"
+              ]
+            }
+          ]
+        },
+        {
+          "brand": "Tokuyama",
+          "family": "Estelite Sigma Quick",
+          "aliases": [
+            "estelite sigma quick",
+            "эстелайт сигма квик",
+            "сигма квик"
+          ],
+          "variants": [
+            {
+              "shades": [
+                "A1",
+                "A2",
+                "A3",
+                "A3.5",
+                "A4",
+                "B1",
+                "B2",
+                "OA2",
+                "OA3"
+              ]
+            }
+          ]
         }
       ]
     }
