@@ -81,6 +81,18 @@ button.secondary{
   color:#111
 }
 
+button.green{
+  background:#238636
+}
+
+button.red{
+  background:#d33
+}
+
+button.blue{
+  background:#1769aa
+}
+
 .option{
   background:#fff;
   border:1px solid #ddd;
@@ -104,19 +116,19 @@ button.secondary{
   margin-top:12px
 }
 
-.error{
-  background:#fff0f0;
-  color:#a11;
-  border-radius:12px;
-  padding:12px;
-  margin-top:12px
-}
-
 .summary{
   background:#f5f6f8;
   border-radius:12px;
   padding:14px;
   margin-top:12px
+}
+
+.offer{
+  border:1px solid #ddd;
+  border-radius:14px;
+  padding:15px;
+  margin:12px 0;
+  background:#fff
 }
 </style>
 </head>
@@ -125,35 +137,44 @@ button.secondary{
 
 <div class="app">
 
-  <h1>Закупки AI</h1>
+<h1>Закупки AI</h1>
 
-  <div id="app"></div>
+<div id="app"></div>
 
 </div>
 
 <script>
 
-let catalog = [];
+/* =====================================================
+   СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+===================================================== */
 
-let selectedProduct = null;
-let selectedForm = null;
-let selectedPackage = null;
+let catalog=[];
 
-let quantity = null;
-let requirements = "";
-let originalRequest = "";
+let selectedProduct=null;
+let selectedForm=null;
+let selectedPackage=null;
 
-let currentMatches = [];
-let currentForms = [];
+let quantity=null;
+let requirements="";
+
+let currentMatches=[];
+let currentForms=[];
+
+/* Заявка, которую отправили поставщикам */
+let procurementRequest=null;
+
+/* Предложения поставщиков */
+let supplierOffers=[];
 
 
-/* =========================
-   НОРМАЛИЗАЦИЯ ТЕКСТА
-========================= */
+/* =====================================================
+   НОРМАЛИЗАЦИЯ
+===================================================== */
 
 function normalizeText(text){
 
-  return String(text || "")
+  return String(text||"")
     .toLowerCase()
     .replace(/ё/g,"е")
     .replace(/[^а-яa-z0-9]+/gi," ")
@@ -163,28 +184,26 @@ function normalizeText(text){
 }
 
 
-/* =========================
+/* =====================================================
    ЗАГРУЗКА КАТАЛОГА
-========================= */
+===================================================== */
 
 async function loadCatalog(){
 
   try{
 
-    const response = await fetch(
-      "catalog.json?v=" + Date.now(),
-      {
-        cache:"no-store"
-      }
+    const response=await fetch(
+      "catalog.json?v="+Date.now(),
+      {cache:"no-store"}
     );
 
     if(!response.ok){
       throw new Error("Ошибка загрузки каталога");
     }
 
-    const data = await response.json();
+    const data=await response.json();
 
-    catalog = Array.isArray(data.catalog)
+    catalog=Array.isArray(data.catalog)
       ? data.catalog
       : [];
 
@@ -192,37 +211,35 @@ async function loadCatalog(){
 
     console.error(error);
 
-    catalog = [];
+    catalog=[];
 
   }
 
 }
 
 
-/* =========================
-   ПОИСК ПО НАЗВАНИЯМ
-========================= */
+/* =====================================================
+   ПОИСК
+===================================================== */
 
 function findCatalogMatches(text){
 
-  const query = normalizeText(text);
+  const query=normalizeText(text);
 
-  if(!query){
-    return [];
-  }
+  if(!query) return [];
 
-  return catalog.filter(item => {
+  return catalog.filter(item=>{
 
-    const fields = [
+    const fields=[
       item.brand,
       item.family,
       item.variant,
       item.active_ingredient
     ];
 
-    return fields.some(field => {
+    return fields.some(field=>{
 
-      const value = normalizeText(field);
+      const value=normalizeText(field);
 
       return value &&
         (
@@ -237,62 +254,48 @@ function findCatalogMatches(text){
 }
 
 
-/* =========================
-   ТОЧНЫЙ ПОИСК ALIAS
-========================= */
-
 function findAliasMatches(text){
 
-  const query = normalizeText(text);
+  const query=normalizeText(text);
 
-  if(!query){
-    return [];
-  }
+  if(!query) return [];
 
-  return catalog.filter(item => {
+  return catalog.filter(item=>{
 
     if(!Array.isArray(item.aliases)){
       return false;
     }
 
-    return item.aliases.some(alias => {
-
-      return normalizeText(alias) === query;
-
-    });
+    return item.aliases.some(alias=>
+      normalizeText(alias)===query
+    );
 
   });
 
 }
 
-
-/* =========================
-   ПОИСК ALIAS ВНУТРИ ФРАЗЫ
-========================= */
 
 function findAliasInsideText(text){
 
-  const query = normalizeText(text);
+  const query=normalizeText(text);
 
-  if(!query){
-    return [];
-  }
+  if(!query) return [];
 
-  return catalog.filter(item => {
+  return catalog.filter(item=>{
 
     if(!Array.isArray(item.aliases)){
       return false;
     }
 
-    return item.aliases.some(alias => {
+    return item.aliases.some(alias=>{
 
-      const normalizedAlias = normalizeText(alias);
+      const normalized=normalizeText(alias);
 
-      if(normalizedAlias.length < 4){
+      if(normalized.length<4){
         return false;
       }
 
-      return query.includes(normalizedAlias);
+      return query.includes(normalized);
 
     });
 
@@ -301,29 +304,29 @@ function findAliasInsideText(text){
 }
 
 
-/* =========================
-   ОТОБРАЖЕНИЕ
-========================= */
+/* =====================================================
+   RENDER
+===================================================== */
 
 function render(html){
 
-  document.getElementById("app").innerHTML = html;
+  document.getElementById("app").innerHTML=html;
 
 }
 
 
-/* =========================
-   НАЧАЛО
-========================= */
+/* =====================================================
+   КЛИНИКА — НАЧАЛО
+===================================================== */
 
 function showStart(){
 
-  selectedProduct = null;
-  selectedForm = null;
-  selectedPackage = null;
+  selectedProduct=null;
+  selectedForm=null;
+  selectedPackage=null;
 
-  quantity = null;
-  requirements = "";
+  quantity=null;
+  requirements="";
 
   render(`
 
@@ -346,58 +349,46 @@ function showStart(){
 
     </div>
 
+    <div class="card">
+
+      <h2>Тест системы</h2>
+
+      <button
+        class="secondary"
+        onclick="showSupplierMode()"
+      >
+        Открыть режим поставщика
+      </button>
+
+    </div>
+
   `);
 
 }
 
 
-/* =========================
+/* =====================================================
    ОБРАБОТКА ЗАПРОСА
-========================= */
+===================================================== */
 
 function processRequest(){
 
-  const input =
-    document.getElementById("request");
+  const input=document.getElementById("request");
 
-  const text =
-    input ? input.value.trim() : "";
+  const text=input ? input.value.trim() : "";
 
-  if(!text){
-    return;
+  if(!text) return;
+
+
+  let matches=findAliasMatches(text);
+
+  if(matches.length===0){
+    matches=findAliasInsideText(text);
   }
 
-  originalRequest = text;
+  if(matches.length===1){
 
-
-  /*
-    1. Сначала точный alias
-  */
-
-  let matches =
-    findAliasMatches(text);
-
-
-  /*
-    2. Затем alias внутри фразы
-  */
-
-  if(matches.length === 0){
-
-    matches =
-      findAliasInsideText(text);
-
-  }
-
-
-  /*
-    3. Если найден один товар,
-       выбираем его
-  */
-
-  if(matches.length === 1){
-
-    selectedProduct = matches[0];
+    selectedProduct=matches[0];
 
     showProductConfirmation();
 
@@ -406,18 +397,12 @@ function processRequest(){
   }
 
 
-  /*
-    4. Если alias не помог,
-       ищем официальное название
-  */
-
-  matches =
-    findCatalogMatches(text);
+  matches=findCatalogMatches(text);
 
 
-  if(matches.length === 1){
+  if(matches.length===1){
 
-    selectedProduct = matches[0];
+    selectedProduct=matches[0];
 
     showProductConfirmation();
 
@@ -426,7 +411,7 @@ function processRequest(){
   }
 
 
-  if(matches.length > 1){
+  if(matches.length>1){
 
     showVariants(matches);
 
@@ -457,15 +442,15 @@ function processRequest(){
 }
 
 
-/* =========================
+/* =====================================================
    ВАРИАНТЫ
-========================= */
+===================================================== */
 
 function showVariants(matches){
 
-  currentMatches = matches;
+  currentMatches=matches;
 
-  let html = `
+  let html=`
 
     <div class="card">
 
@@ -480,7 +465,7 @@ function showVariants(matches){
 
   matches.forEach((item,index)=>{
 
-    html += `
+    html+=`
 
       <button
         class="option"
@@ -488,22 +473,12 @@ function showVariants(matches){
       >
 
         <strong>
-          ${escapeHtml(item.family || item.brand)}
+          ${escapeHtml(item.family||item.brand)}
         </strong>
 
         <br>
 
-        ${escapeHtml(item.variant || "")}
-
-        ${
-          item.active_ingredient
-            ? `
-              <div class="small">
-                ${escapeHtml(item.active_ingredient)}
-              </div>
-            `
-            : ""
-        }
+        ${escapeHtml(item.variant||"")}
 
       </button>
 
@@ -512,7 +487,7 @@ function showVariants(matches){
   });
 
 
-  html += `
+  html+=`
 
       <button
         class="secondary"
@@ -525,39 +500,27 @@ function showVariants(matches){
 
   `;
 
-
   render(html);
 
 }
 
 
-/* =========================
-   ВЫБОР ВАРИАНТА
-========================= */
-
 function selectVariant(index){
 
-  const item =
-    currentMatches[index];
-
-  if(!item){
-    return;
-  }
-
-  selectedProduct = item;
+  selectedProduct=currentMatches[index];
 
   showProductConfirmation();
 
 }
 
 
-/* =========================
-   ПОДТВЕРЖДЕНИЕ ТОВАРА
-========================= */
+/* =====================================================
+   ТОВАР
+===================================================== */
 
 function showProductConfirmation(){
 
-  const item = selectedProduct;
+  const item=selectedProduct;
 
   render(`
 
@@ -568,27 +531,16 @@ function showProductConfirmation(){
       <div class="summary">
 
         <strong>
-          ${escapeHtml(item.brand || "")}
+          ${escapeHtml(item.brand||"")}
         </strong>
 
         <br>
 
-        ${escapeHtml(item.family || "")}
+        ${escapeHtml(item.family||"")}
 
         <br>
 
-        ${escapeHtml(item.variant || "")}
-
-        ${
-          item.active_ingredient
-            ? `
-              <br>
-              <span class="small">
-                ${escapeHtml(item.active_ingredient)}
-              </span>
-            `
-            : ""
-        }
+        ${escapeHtml(item.variant||"")}
 
       </div>
 
@@ -614,30 +566,21 @@ function showProductConfirmation(){
 }
 
 
-/* =========================
-   ВЫБОР ФОРМЫ
-========================= */
+/* =====================================================
+   ФОРМА
+===================================================== */
 
 function showForms(){
 
-  const forms =
+  const forms=
     Array.isArray(selectedProduct.forms)
       ? selectedProduct.forms
       : [];
 
 
-  if(forms.length === 0){
+  if(forms.length===1){
 
-    showQuantity();
-
-    return;
-
-  }
-
-
-  if(forms.length === 1){
-
-    selectedForm = forms[0];
+    selectedForm=forms[0];
 
     showPackages();
 
@@ -646,10 +589,10 @@ function showForms(){
   }
 
 
-  currentForms = forms;
+  currentForms=forms;
 
 
-  let html = `
+  let html=`
 
     <div class="card">
 
@@ -660,7 +603,7 @@ function showForms(){
 
   forms.forEach((form,index)=>{
 
-    html += `
+    html+=`
 
       <button
         class="option"
@@ -668,7 +611,7 @@ function showForms(){
       >
 
         <strong>
-          ${escapeHtml(form.form || "")}
+          ${escapeHtml(form.form||"")}
         </strong>
 
         ${
@@ -678,7 +621,7 @@ function showForms(){
                 ${form.volume_ml} мл
               </div>
             `
-            : ""
+            :""
         }
 
       </button>
@@ -688,7 +631,7 @@ function showForms(){
   });
 
 
-  html += `
+  html+=`
 
       <button
         class="secondary"
@@ -707,59 +650,42 @@ function showForms(){
 }
 
 
-/* =========================
-   ВЫБОР ФОРМЫ
-========================= */
-
 function selectForm(index){
 
-  selectedForm =
-    currentForms[index];
-
-  if(!selectedForm){
-    return;
-  }
+  selectedForm=currentForms[index];
 
   showPackages();
 
 }
 
 
-/* =========================
-   ВЫБОР УПАКОВКИ
-========================= */
+/* =====================================================
+   УПАКОВКА
+===================================================== */
 
 function showPackages(){
 
-  /*
-    Сейчас у каждой формы один вариант
-    упаковки, поэтому выбираем его автоматически.
-  */
-
-  selectedPackage = selectedForm;
+  selectedPackage=selectedForm;
 
   showQuantity();
 
 }
 
 
-/* =========================
+/* =====================================================
    КОЛИЧЕСТВО
-========================= */
+===================================================== */
 
 function showQuantity(){
 
-  const formName =
-    selectedForm?.form || "";
+  const formName=selectedForm?.form||"";
 
-  const volume =
-    selectedForm?.volume_ml
-      ? `${selectedForm.volume_ml} мл`
-      : "";
+  const volume=selectedForm?.volume_ml
+    ? `${selectedForm.volume_ml} мл`
+    : "";
 
-
-  const packageQuantity =
-    selectedPackage?.package_quantity || 1;
+  const packageQuantity=
+    selectedPackage?.package_quantity||1;
 
 
   render(`
@@ -777,7 +703,7 @@ function showQuantity(){
         ${
           volume
             ? `, ${escapeHtml(volume)}`
-            : ""
+            :""
         }
 
         <br>
@@ -814,34 +740,26 @@ function showQuantity(){
 }
 
 
-/* =========================
-   СОХРАНЕНИЕ КОЛИЧЕСТВА
-========================= */
-
 function saveQuantity(){
 
-  const input =
-    document.getElementById("quantity");
+  const value=Number(
+    document.getElementById("quantity").value
+  );
 
-  const value =
-    Number(input.value);
-
-
-  if(!value || value < 1){
+  if(!value || value<1){
     return;
   }
 
-
-  quantity = value;
+  quantity=value;
 
   showRequirements();
 
 }
 
 
-/* =========================
+/* =====================================================
    ТРЕБОВАНИЯ
-========================= */
+===================================================== */
 
 function showRequirements(){
 
@@ -872,35 +790,56 @@ function showRequirements(){
 }
 
 
-/* =========================
-   ФИНАЛЬНАЯ ЗАЯВКА
-========================= */
+/* =====================================================
+   ФОРМИРОВАНИЕ ЗАЯВКИ
+===================================================== */
 
 function finishRequest(){
 
-  const input =
+  const input=
     document.getElementById("requirements");
 
-  requirements =
+  requirements=
     input ? input.value.trim() : "";
 
 
-  const item =
-    selectedProduct;
+  procurementRequest={
+
+    id:"REQ-"+Date.now(),
+
+    product:selectedProduct,
+
+    form:selectedForm,
+
+    package:selectedPackage,
+
+    quantity:quantity,
+
+    requirements:requirements,
+
+    status:"sent",
+
+    createdAt:new Date().toISOString()
+
+  };
 
 
-  const formName =
-    selectedForm?.form || "";
+  renderClinicRequest();
+
+}
 
 
-  const volume =
-    selectedForm?.volume_ml
-      ? `${selectedForm.volume_ml} мл`
-      : "";
+/* =====================================================
+   ЗАЯВКА КЛИНИКИ
+===================================================== */
 
+function renderClinicRequest(){
 
-  const packageQuantity =
-    selectedPackage?.package_quantity || 1;
+  const item=procurementRequest.product;
+
+  const form=procurementRequest.form;
+
+  const packageData=procurementRequest.package;
 
 
   render(`
@@ -919,25 +858,25 @@ function finishRequest(){
 
         <br><br>
 
-        ${escapeHtml(item.brand || "")}
-        ${escapeHtml(item.family || "")}
+        ${escapeHtml(item.brand||"")}
+        ${escapeHtml(item.family||"")}
 
-        — ${escapeHtml(item.variant || "")}
+        — ${escapeHtml(item.variant||"")}
 
         <br>
 
-        ${escapeHtml(formName)}
+        ${escapeHtml(form.form||"")}
 
         ${
-          volume
-            ? `, ${escapeHtml(volume)}`
-            : ""
+          form.volume_ml
+            ? `, ${form.volume_ml} мл`
+            :""
         }
 
         <br>
 
         В упаковке:
-        ${packageQuantity} шт.
+        ${packageData.package_quantity||1} шт.
 
         <br><br>
 
@@ -945,20 +884,20 @@ function finishRequest(){
           Количество:
         </strong>
 
-        ${formatQuantity(quantity)}
+        ${formatQuantity(procurementRequest.quantity)}
 
       </div>
 
 
       ${
-        requirements
+        procurementRequest.requirements
           ? `
             <p>
               <strong>Требования:</strong><br>
-              ${escapeHtml(requirements)}
+              ${escapeHtml(procurementRequest.requirements)}
             </p>
           `
-          : ""
+          :""
       }
 
 
@@ -966,11 +905,9 @@ function finishRequest(){
         Товар сопоставлен с каталогом.
       </div>
 
-
       <button onclick="sendToSuppliers()">
         Отправить поставщикам
       </button>
-
 
       <button
         class="secondary"
@@ -986,28 +923,698 @@ function finishRequest(){
 }
 
 
-/* =========================
-   ПОСТАВЩИКИ
-========================= */
+/* =====================================================
+   ОТПРАВКА ПОСТАВЩИКАМ
+===================================================== */
 
 function sendToSuppliers(){
+
+  if(!procurementRequest){
+    return;
+  }
+
+  procurementRequest.status="sent_to_suppliers";
+
+  showSupplierMode();
+
+}
+
+
+/* =====================================================
+   РЕЖИМ ПОСТАВЩИКА
+===================================================== */
+
+function showSupplierMode(){
+
+  if(!procurementRequest){
+
+    render(`
+
+      <div class="card">
+
+        <h2>Режим поставщика</h2>
+
+        <p>
+          Сейчас нет активной заявки.
+        </p>
+
+        <button
+          class="secondary"
+          onclick="showStart()"
+        >
+          Назад
+        </button>
+
+      </div>
+
+    `);
+
+    return;
+
+  }
+
+
+  const item=procurementRequest.product;
+
+  const form=procurementRequest.form;
+
+  const packageData=procurementRequest.package;
+
 
   render(`
 
     <div class="card">
 
-      <h2>Заявка отправлена</h2>
+      <h2>Новая заявка</h2>
 
-      <div class="success">
+      <div class="summary">
 
-        Заявка направлена подходящим поставщикам.
+        <strong>
+          ${escapeHtml(item.brand||"")}
+          ${escapeHtml(item.family||"")}
+        </strong>
+
+        <br>
+
+        ${escapeHtml(item.variant||"")}
+
+        <br>
+
+        ${escapeHtml(form.form||"")}
+
+        ${
+          form.volume_ml
+            ? `, ${form.volume_ml} мл`
+            :""
+        }
+
+        <br>
+
+        ${formatQuantity(procurementRequest.quantity)}
+
+        <br>
+
+        В упаковке:
+        ${packageData.package_quantity||1} шт.
 
       </div>
 
+
+      ${
+        procurementRequest.requirements
+          ? `
+            <p>
+              <strong>Требования клиники:</strong><br>
+              ${escapeHtml(procurementRequest.requirements)}
+            </p>
+          `
+          :""
+      }
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>Ваш ответ</h2>
+
+      <button
+        class="green"
+        onclick="showSupplierOfferForm()"
+      >
+        💰 Дать цену
+      </button>
+
+      <button
+        class="red"
+        onclick="supplierCannotSupply()"
+      >
+        ❌ Не могу поставить
+      </button>
+
+      <button
+        class="blue"
+        onclick="supplierClarify()"
+      >
+        ❓ Уточнить возможность
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <button
+        class="secondary"
+        onclick="showClinicOffers()"
+      >
+        Вернуться к клинике
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПОСТАВЩИК — ДАТЬ ЦЕНУ
+===================================================== */
+
+function showSupplierOfferForm(){
+
+  render(`
+
+    <div class="card">
+
+      <h2>Предложение поставщика</h2>
+
       <p>
-        Когда поставщики ответят,
-        здесь появятся их предложения.
+        Укажите условия поставки.
       </p>
+
+      <input
+        id="offerPrice"
+        type="number"
+        min="0"
+        placeholder="Цена товара, ₽"
+      >
+
+      <input
+        id="deliveryCost"
+        type="number"
+        min="0"
+        placeholder="Стоимость доставки, ₽"
+      >
+
+      <input
+        id="deliveryTime"
+        type="text"
+        placeholder="Срок поставки, например: 5 дней"
+      >
+
+      <button onclick="submitSupplierOffer()">
+        Отправить предложение
+      </button>
+
+      <button
+        class="secondary"
+        onclick="showSupplierMode()"
+      >
+        Назад
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ОТПРАВКА ПРЕДЛОЖЕНИЯ
+===================================================== */
+
+function submitSupplierOffer(){
+
+  const price=
+    Number(document.getElementById("offerPrice").value);
+
+  const deliveryCost=
+    Number(document.getElementById("deliveryCost").value);
+
+  const deliveryTime=
+    document.getElementById("deliveryTime").value.trim();
+
+
+  if(
+    !price ||
+    price<0 ||
+    !deliveryTime
+  ){
+    return;
+  }
+
+
+  const offer={
+
+    id:"OFFER-"+Date.now(),
+
+    supplierName:"Поставщик №1",
+
+    price:price,
+
+    deliveryCost:
+      Number.isFinite(deliveryCost)
+        ? deliveryCost
+        : 0,
+
+    deliveryTime:deliveryTime,
+
+    status:"new"
+
+  };
+
+
+  supplierOffers.push(offer);
+
+  procurementRequest.status="offer_received";
+
+  showSupplierOfferSent();
+
+}
+
+
+/* =====================================================
+   ПРЕДЛОЖЕНИЕ ОТПРАВЛЕНО
+===================================================== */
+
+function showSupplierOfferSent(){
+
+  render(`
+
+    <div class="card">
+
+      <h2>Предложение отправлено</h2>
+
+      <div class="success">
+
+        Клиника получила ваше предложение.
+
+      </div>
+
+      <button onclick="showClinicOffers()">
+        Открыть предложения клиники
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПОСТАВЩИК — НЕ МОГУ ПОСТАВИТЬ
+===================================================== */
+
+function supplierCannotSupply(){
+
+  procurementRequest.status="supplier_cannot_supply";
+
+
+  render(`
+
+    <div class="card">
+
+      <h2>Ответ отправлен</h2>
+
+      <div class="success">
+        Поставщик сообщил,
+        что не может выполнить заявку.
+      </div>
+
+      <button onclick="showClinicOffers()">
+        Вернуться к клинике
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПОСТАВЩИК — УТОЧНИТЬ
+===================================================== */
+
+function supplierClarify(){
+
+  procurementRequest.status="clarification_requested";
+
+
+  render(`
+
+    <div class="card">
+
+      <h2>Запрос отправлен</h2>
+
+      <p>
+        Поставщик запросил уточнение возможности поставки.
+      </p>
+
+      <button onclick="showClinicOffers()">
+        Вернуться к клинике
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПРЕДЛОЖЕНИЯ ДЛЯ КЛИНИКИ
+===================================================== */
+
+function showClinicOffers(){
+
+  if(!procurementRequest){
+
+    showStart();
+
+    return;
+
+  }
+
+
+  if(supplierOffers.length===0){
+
+    render(`
+
+      <div class="card">
+
+        <h2>Предложения</h2>
+
+        <p>
+          Пока нет предложений поставщиков.
+        </p>
+
+        <button onclick="showSupplierMode()">
+          Открыть режим поставщика
+        </button>
+
+        <button
+          class="secondary"
+          onclick="showStart()"
+        >
+          Новая закупка
+        </button>
+
+      </div>
+
+    `);
+
+    return;
+
+  }
+
+
+  let html=`
+
+    <div class="card">
+
+      <h2>Получены предложения</h2>
+
+      <p>
+        Выберите подходящее предложение.
+      </p>
+
+  `;
+
+
+  supplierOffers.forEach((offer,index)=>{
+
+    const total=
+      offer.price+offer.deliveryCost;
+
+
+    html+=`
+
+      <div class="offer">
+
+        <strong>
+          ${escapeHtml(offer.supplierName)}
+        </strong>
+
+        <br><br>
+
+        Цена товара:
+        ${formatMoney(offer.price)}
+
+        <br>
+
+        Доставка:
+        ${formatMoney(offer.deliveryCost)}
+
+        <br>
+
+        <strong>
+          Итого:
+          ${formatMoney(total)}
+        </strong>
+
+        <br>
+
+        Срок:
+        ${escapeHtml(offer.deliveryTime)}
+
+        <button
+          class="green"
+          onclick="selectOffer(${index})"
+        >
+          Выбрать предложение
+        </button>
+
+      </div>
+
+    `;
+
+  });
+
+
+  html+=`
+
+      <button
+        class="secondary"
+        onclick="showSupplierMode()"
+      >
+        Режим поставщика
+      </button>
+
+    </div>
+
+  `;
+
+
+  render(html);
+
+}
+
+
+/* =====================================================
+   ВЫБОР ПРЕДЛОЖЕНИЯ
+===================================================== */
+
+function selectOffer(index){
+
+  const offer=supplierOffers[index];
+
+  if(!offer){
+    return;
+  }
+
+  offer.status="selected";
+
+  procurementRequest.status="supplier_selected";
+
+  render(`
+
+    <div class="card">
+
+      <h2>Предложение выбрано</h2>
+
+      <div class="success">
+
+        Вы выбрали ${escapeHtml(offer.supplierName)}.
+
+      </div>
+
+      <div class="summary">
+
+        Цена:
+        ${formatMoney(offer.price)}
+
+        <br>
+
+        Доставка:
+        ${formatMoney(offer.deliveryCost)}
+
+        <br>
+
+        <strong>
+          Итого:
+          ${formatMoney(
+            offer.price+offer.deliveryCost
+          )}
+        </strong>
+
+        <br>
+
+        Срок:
+        ${escapeHtml(offer.deliveryTime)}
+
+      </div>
+
+      <button
+        class="green"
+        onclick="confirmOrder()"
+      >
+        Подтвердить заказ
+      </button>
+
+      <button
+        class="secondary"
+        onclick="showClinicOffers()"
+      >
+        Назад к предложениям
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПОДТВЕРЖДЕНИЕ ЗАКАЗА
+===================================================== */
+
+function confirmOrder(){
+
+  procurementRequest.status="order_confirmed";
+
+  const selected=
+    supplierOffers.find(
+      offer=>offer.status==="selected"
+    );
+
+
+  render(`
+
+    <div class="card">
+
+      <h2>Заказ подтверждён</h2>
+
+      <div class="success">
+
+        Заказ передан поставщику.
+
+      </div>
+
+      ${
+        selected
+          ? `
+            <div class="summary">
+
+              Поставщик:
+              ${escapeHtml(selected.supplierName)}
+
+              <br>
+
+              Итого:
+              ${formatMoney(
+                selected.price+
+                selected.deliveryCost
+              )}
+
+              <br>
+
+              Срок:
+              ${escapeHtml(selected.deliveryTime)}
+
+            </div>
+          `
+          :""
+      }
+
+
+      <button onclick="supplierAcceptOrder()">
+        Открыть заказ поставщика
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ПОСТАВЩИК — ПРИНЯТЬ ЗАКАЗ
+===================================================== */
+
+function supplierAcceptOrder(){
+
+  procurementRequest.status="accepted_by_supplier";
+
+
+  render(`
+
+    <div class="card">
+
+      <h2>Заказ поставщику</h2>
+
+      <div class="summary">
+
+        Заказ:
+        ${escapeHtml(
+          procurementRequest.product.family||""
+        )}
+
+        <br>
+
+        Количество:
+        ${formatQuantity(
+          procurementRequest.quantity
+        )}
+
+      </div>
+
+      <button
+        class="green"
+        onclick="finishOrder()"
+      >
+        ✅ Принять заказ
+      </button>
+
+      <button
+        class="red"
+        onclick="rejectOrder()"
+      >
+        ❌ Не могу выполнить
+      </button>
+
+    </div>
+
+  `);
+
+}
+
+
+/* =====================================================
+   ЗАКАЗ ЗАВЕРШЁН
+===================================================== */
+
+function finishOrder(){
+
+  procurementRequest.status="accepted";
+
+  render(`
+
+    <div class="card">
+
+      <h2>Заказ принят</h2>
+
+      <div class="success">
+
+        Поставщик подтвердил выполнение заказа.
+
+      </div>
 
       <button onclick="showStart()">
         Новая закупка
@@ -1020,45 +1627,84 @@ function sendToSuppliers(){
 }
 
 
-/* =========================
-   КОЛИЧЕСТВО УПАКОВОК
-========================= */
+/* =====================================================
+   ПОСТАВЩИК НЕ МОЖЕТ ВЫПОЛНИТЬ
+===================================================== */
 
-function formatQuantity(n){
+function rejectOrder(){
 
-  n = Number(n);
+  procurementRequest.status="rejected_by_supplier";
 
-  const lastTwo = n % 100;
-  const last = n % 10;
+  render(`
 
+    <div class="card">
 
-  if(lastTwo >= 11 && lastTwo <= 14){
-    return n + " упаковок";
-  }
+      <h2>Заказ не принят</h2>
 
+      <p>
+        Поставщик сообщил,
+        что не может выполнить заказ.
+      </p>
 
-  if(last === 1){
-    return n + " упаковка";
-  }
+      <button onclick="showClinicOffers()">
+        Вернуться к предложениям
+      </button>
 
+    </div>
 
-  if(last >= 2 && last <= 4){
-    return n + " упаковки";
-  }
-
-
-  return n + " упаковок";
+  `);
 
 }
 
 
-/* =========================
+/* =====================================================
+   ФОРМАТ ДЕНЕГ
+===================================================== */
+
+function formatMoney(value){
+
+  return Number(value||0).toLocaleString("ru-RU")
+    +" ₽";
+
+}
+
+
+/* =====================================================
+   ФОРМАТ КОЛИЧЕСТВА
+===================================================== */
+
+function formatQuantity(n){
+
+  n=Number(n);
+
+  const lastTwo=n%100;
+  const last=n%10;
+
+
+  if(lastTwo>=11 && lastTwo<=14){
+    return n+" упаковок";
+  }
+
+  if(last===1){
+    return n+" упаковка";
+  }
+
+  if(last>=2 && last<=4){
+    return n+" упаковки";
+  }
+
+  return n+" упаковок";
+
+}
+
+
+/* =====================================================
    БЕЗОПАСНЫЙ ВЫВОД
-========================= */
+===================================================== */
 
 function escapeHtml(value){
 
-  return String(value || "")
+  return String(value||"")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
@@ -1068,9 +1714,9 @@ function escapeHtml(value){
 }
 
 
-/* =========================
+/* =====================================================
    ЗАПУСК
-========================= */
+===================================================== */
 
 (async function(){
 
